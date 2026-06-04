@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, User, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
 export default function Login() {
   const router = useRouter();
@@ -14,6 +16,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(0);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !(window as any).recaptchaVerifier) {
+      try {
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+            // reCAPTCHA solved
+          }
+        });
+      } catch (err) {
+        console.error("Recaptcha init error:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -45,22 +63,17 @@ export default function Login() {
     setError("");
     
     try {
-      const res = await fetch("/api/auth/otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "send", phone }),
-      });
-      const data = await res.json();
+      const appVerifier = (window as any).recaptchaVerifier;
+      const formattedPhone = `+91${phone}`;
       
-      if (data.success) {
-        setStep("otp");
-        setTimer(60);
-      } else {
-        setError(data.error || "Failed to send OTP");
-      }
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      
+      setStep("otp");
+      setTimer(60);
     } catch (err: any) {
       console.error("OTP Error:", err);
-      setError("Failed to connect to authentication server.");
+      setError("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -68,32 +81,27 @@ export default function Login() {
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) return;
+    if (otp.length !== 6 || !confirmationResult) return;
     
     setLoading(true);
     setError("");
     
     try {
-      const res = await fetch("/api/auth/otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify", phone, otp }),
-      });
-      const data = await res.json();
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user;
       
-      if (data.success) {
-        if (data.isNewUser) {
-          setStep("profile");
-        } else {
-          router.push("/");
-          router.refresh();
-        }
+      // Optionally notify backend about successful firebase login here if needed
+      // For now, we rely on Firebase Auth
+      
+      if (!user.displayName) {
+        setStep("profile");
       } else {
-        setError(data.error || "Invalid OTP. Please try again.");
+        router.push("/");
+        router.refresh();
       }
     } catch (err: any) {
       console.error("Verification error:", err);
-      setError("Failed to verify OTP. Please try again.");
+      setError("Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -107,18 +115,20 @@ export default function Login() {
     setError("");
     
     try {
-      const res = await fetch("/api/auth/profile", {
-        method: "POST",
-        body: JSON.stringify({ phone, fullName }),
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        router.push("/");
-        router.refresh();
-      } else {
-        setError(data.error || "Failed to save profile");
+      if (auth.currentUser) {
+        const { updateProfile } = await import("firebase/auth");
+        await updateProfile(auth.currentUser, { displayName: fullName });
       }
+      
+      // Keep syncing with backend just in case
+      await fetch("/api/auth/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, fullName }),
+      }).catch(console.error);
+      
+      router.push("/");
+      router.refresh();
     } catch (err) {
       setError("Failed to complete profile.");
     } finally {
@@ -128,6 +138,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-brand-light flex flex-col justify-center items-center p-4 selection:bg-brand-accent/30 font-inter">
+      <div id="recaptcha-container"></div>
       <div className="absolute top-8 left-8">
         <Link href="/" className="inline-flex items-center space-x-2 text-brand/60 hover:text-brand transition text-sm font-medium">
           <ArrowLeft size={16} />

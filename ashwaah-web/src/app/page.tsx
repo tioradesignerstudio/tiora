@@ -74,37 +74,7 @@ export default function Home() {
         <ProductGrid />
       </main>
 
-      <footer className="w-full bg-[#1B3022] py-20 px-8 text-white/60">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <span className="text-3xl font-playfair font-bold text-white tracking-tighter">Ashwaah</span>
-            <p className="mt-6 text-white/40 max-w-sm leading-relaxed font-inter text-sm">
-              Elevating the standard of dual-gender apparel through precision tailoring and bespoke craftsmanship. Your fit, perfected down to the millimeter.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-[0.2em] text-xs mb-6">Collections</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link href="/category/mens" className="hover:text-[#C5A059] transition-colors">Men's Bespoke</Link></li>
-              <li><Link href="/category/womens" className="hover:text-[#C5A059] transition-colors">Women's Couture</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-[0.2em] text-xs mb-6">Company</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link href="/my-story" className="hover:text-[#C5A059] transition-colors">Our Story</Link></li>
-              <li><Link href="#" className="hover:text-[#C5A059] transition-colors">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-[#C5A059] transition-colors">Terms & Conditions</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-[10px] uppercase tracking-[0.2em]">
-          <p className="text-white/20">© 2026 Ashwaah Boutique. All rights reserved.</p>
-          <div className="flex space-x-8 mt-4 md:mt-0">
-            <span className="text-white/20">Crafted with Excellence</span>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }
