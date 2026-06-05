@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
-import ProductGrid from "@/components/ProductGrid";
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { Sparkles, ChevronLeft, ChevronRight, Megaphone } from "lucide-react";
+import ProductGrid from "@/components/ProductGrid";
 
 type NavItem = {
   id: number;
@@ -14,12 +14,16 @@ type NavItem = {
   isActive: boolean;
 };
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [offers, setOffers] = useState<any[]>([]);
+  const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
 
   const scroll = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -48,10 +52,39 @@ export default function Home() {
     fetchNavItems();
   }, []);
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const resBanner = await fetch("/api/admin/settings?key=homepage_banner");
+        const dataBanner = await resBanner.json();
+        if (dataBanner.success && dataBanner.data) {
+          setBannerUrl(dataBanner.data.value);
+        }
+
+        const resOffers = await fetch("/api/admin/offers");
+        const dataOffers = await resOffers.json();
+        if (dataOffers.success) {
+          setOffers(dataOffers.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings/offers", err);
+      }
+    }
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (offers.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentOfferIndex((prev) => (prev + 1) % offers.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [offers.length]);
   return (
     <div className="min-h-screen bg-white text-brand font-sans selection:bg-brand-accent/30">
       {/* Hero Section */}
       <header className="relative w-full min-h-[70vh] flex flex-col items-center justify-center overflow-hidden border-b border-brand/10 bg-white pt-16">
+
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -65,7 +98,7 @@ export default function Home() {
             className="inline-flex items-center space-x-2 bg-brand/5 border border-brand/10 text-brand text-xs font-bold px-4 py-1.5 rounded-full mb-8 shadow-sm tracking-widest uppercase"
           >
             <Sparkles size={14} className="text-brand-accent" />
-            <span>Introducing Custom Refinements</span>
+            <span>Curated for All. Customized for You</span>
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -81,13 +114,57 @@ export default function Home() {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="text-brand/70 text-xl max-w-2xl mx-auto mb-4 font-inter leading-relaxed"
           >
-            Ashwaah elevates dual-gender apparel. Select your base size, then refine your waist, length, and sleeves down to the millimeter.
+            At Ashwaah, Our crafted designs meet your individuality — pre‑made or personalised, always perfect for you
           </motion.p>
         </motion.div>
         
         {/* Subtle background element */}
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-brand/5 to-transparent"></div>
       </header>
+
+      {/* Dynamic Offer Announcement Bar (Carousel, 1cm - 2cm Height) */}
+      {offers.length > 0 && (
+        <div className="w-full bg-[#1B3022] text-[#C5A059] h-12 flex items-center justify-center overflow-hidden border-y border-[#C5A059]/10 relative z-30 shadow-md">
+          <div className="max-w-7xl mx-auto px-4 w-full text-center flex items-center justify-center h-full relative">
+            <AnimatePresence mode="wait">
+              {offers.map((offer, idx) => (
+                idx === currentOfferIndex && (
+                  <motion.div
+                    key={offer.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="absolute inset-0 flex items-center justify-center px-4"
+                  >
+                    {offer.link ? (
+                      <Link href={offer.link} className="hover:text-white transition-colors duration-300 flex items-center gap-2">
+                        <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
+                        <span className="text-[8px] md:text-[9px] font-black bg-[#C5A059] text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">Shop Now →</span>
+                      </Link>
+                    ) : (
+                      <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
+                    )}
+                  </motion.div>
+                )
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Promo Banner Image */}
+      {bannerUrl && (
+        <div className="w-full relative overflow-hidden border-b border-brand/10 group mt-0">
+          <img 
+            src={bannerUrl} 
+            alt="Current Offers & Collections" 
+            className="w-full h-auto transition-transform duration-1000 ease-out group-hover:scale-[1.01]" 
+          />
+          {/* Subtle overlay for depth */}
+          <div className="absolute inset-0 bg-black/[0.02] pointer-events-none"></div>
+        </div>
+      )}
 
       {/* Featured Collections Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">

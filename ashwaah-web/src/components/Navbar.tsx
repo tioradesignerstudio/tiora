@@ -131,8 +131,15 @@ export default function Navbar() {
             
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center mr-8">
-              <Link href="/" className="font-playfair text-xl md:text-2xl font-bold text-white tracking-tighter hover:text-[#C5A059] transition-colors">
-                Ashwaah
+              <Link href="/" className="flex items-center gap-1.5 group">
+                <img 
+                  src="/images/logo.png" 
+                  alt="Ashwaah Logo" 
+                  className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                />
+                <span className="font-playfair text-xl md:text-2xl font-bold text-white tracking-tighter hover:text-[#C5A059] transition-colors">
+                  Ashwaah
+                </span>
               </Link>
             </div>
 

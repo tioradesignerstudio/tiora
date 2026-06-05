@@ -109,3 +109,19 @@ export const orderItems = sqliteTable("order_items", {
   color: text("color"),
   customizations: text("customizations"), // JSON string of bespoke measurements
 });
+
+export const siteSettings = sqliteTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").$defaultFn(() => new Date().toISOString()),
+});
+
+export const offerBanners = sqliteTable("offer_banners", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  text: text("text").notNull(),
+  link: text("link"),
+  order: integer("order").notNull().default(0),
+  createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
+});
+
+

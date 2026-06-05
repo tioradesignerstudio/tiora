@@ -15,7 +15,8 @@ import {
   Box,
   BarChart3,
   AlertTriangle,
-  X
+  X,
+  Settings
 } from "lucide-react";
 
 const sidebarLinks = [
@@ -26,6 +27,7 @@ const sidebarLinks = [
   { name: "Navbar Settings", href: "/admin/navigation", icon: Map },
   { name: "Products", href: "/admin/products", icon: Shirt },
   { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Site Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
