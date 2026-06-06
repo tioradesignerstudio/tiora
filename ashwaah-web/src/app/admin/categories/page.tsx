@@ -345,10 +345,10 @@ export default function CategorySettingsPage() {
                 
                 {/* Overlay Card */}
                 <div className="relative z-10 m-3 p-3 bg-[#cd5533] text-white rounded-xl shadow-md text-center flex flex-col items-center justify-center">
-                  <span className="text-[10px] tracking-wide uppercase font-medium line-clamp-1">
+                  <span className="text-[10px] tracking-wide uppercase font-medium text-center w-full block break-words">
                     {name || "Category Name"}
                   </span>
-                  <span className="text-sm font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase line-clamp-1">
+                  <span className="text-sm font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
                     {promoText || "Promo Text"}
                   </span>
                   <span className="text-[9px] font-bold tracking-widest uppercase opacity-90 border-t border-white/20 pt-1 mt-1 w-full block">

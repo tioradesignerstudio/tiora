@@ -28,7 +28,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <Link 
       href={`/product/${product.id}`} 
-      className="group flex flex-col w-full bg-[#F5EBE0] rounded-3xl p-3 border border-brand/5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300"
+      className="group flex flex-col w-full bg-[#FFFDF6] rounded-3xl p-3 border border-brand/5 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300"
     >
       {/* Top Image Section */}
       <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl bg-brand-light/50 border border-brand/5 shadow-sm">

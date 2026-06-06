@@ -219,7 +219,7 @@ export default function Home() {
                       onError={e => (e.currentTarget.src = "/images/placeholder.png")}
                     />
                   </div>
-                  <span className="mt-4 text-xs md:text-sm font-bold tracking-wide text-brand/80 group-hover:text-[#3E5622] transition-colors text-center w-full max-w-[12rem] truncate">
+                  <span className="mt-4 text-xs md:text-sm font-bold tracking-wide text-brand/80 group-hover:text-[#3E5622] transition-colors text-center w-full max-w-[12rem] break-words block">
                     {item.label}
                   </span>
                 </Link>
@@ -260,10 +260,10 @@ export default function Home() {
                     
                     {/* Overlaid coral-orange card at bottom */}
                     <div className="relative z-10 m-4 p-4 bg-[#cd5533]/90 backdrop-blur-sm text-white rounded-2xl shadow-md text-center transition-all duration-300 group-hover:bg-[#cd5533] flex flex-col items-center justify-center">
-                      <span className="text-[10px] md:text-xs tracking-wider uppercase font-medium line-clamp-1">
+                      <span className="text-[10px] md:text-xs tracking-wider uppercase font-medium text-center w-full block break-words">
                         {item.name}
                       </span>
-                      <span className="text-sm md:text-base font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase line-clamp-1">
+                      <span className="text-sm md:text-base font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
                         {item.promoText}
                       </span>
                       <span className="text-[9px] font-bold tracking-widest uppercase border-t border-white/20 pt-1.5 mt-1.5 w-full block transition-colors group-hover:text-white">
