@@ -171,7 +171,7 @@ export default function Navbar() {
 
               <Link href="/my-story" aria-label="My Story" className="hover:text-[#C5A059] transition-colors p-2 flex items-center gap-1.5 group">
                 <BookOpen className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">My Story</span>
+                <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">My Story</span>
               </Link>
 
               <Link href={user ? "/cart" : "/login"} aria-label="Cart" className="hover:text-[#C5A059] transition-colors relative p-2">
