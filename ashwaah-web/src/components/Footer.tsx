@@ -132,8 +132,8 @@ export default function Footer() {
             </a>
           </div>
           <p className="text-[10px] text-[#F5EBE0]/50 font-bold uppercase tracking-[0.2em] mb-2">Email Support</p>
-          <a href="mailto:support@ashwaah.com" className="text-xs font-semibold text-[#F5EBE0] hover:text-[#C5A059] transition">
-            support@ashwaah.com
+           <a href="mailto:ashwaah2627@gmail.com" className="text-xs font-semibold text-[#F5EBE0] hover:text-[#C5A059] transition">
+            ashwaah2627@gmail.com
           </a>
         </div>
       </div>

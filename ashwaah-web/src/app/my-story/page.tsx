@@ -64,15 +64,15 @@ export default function MyStory() {
               Contact Us <Sparkles size={24} className="text-[#C5A059]" />
             </h3>
             <div className="space-y-6">
-              <div className="flex items-center gap-6 group">
+              <a href="mailto:ashwaah2627@gmail.com" className="flex items-center gap-6 group">
                 <div className="w-12 h-12 rounded-2xl bg-[#1B3022]/5 flex items-center justify-center group-hover:bg-[#C5A059] transition-all duration-500">
                   <Mail size={20} className="text-[#C5A059] group-hover:text-white" />
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-[#1B3022]/40">Email Us</p>
-                  <p className="text-lg font-bold text-[#1B3022]">hello@ashwaah.com</p>
+                  <p className="text-lg font-bold text-[#1B3022]">ashwaah2627@gmail.com</p>
                 </div>
-              </div>
+              </a>
 
               <div className="flex items-center gap-6 group">
                 <div className="w-12 h-12 rounded-2xl bg-[#1B3022]/5 flex items-center justify-center group-hover:bg-[#C5A059] transition-all duration-500">
