@@ -136,11 +136,11 @@ export default function Home() {
                   >
                     {offer.link ? (
                       <Link href={offer.link} className="hover:text-brand-accent transition-colors duration-300 flex items-center gap-2">
-                        <span className="text-[12px] md:text-[13px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
-                        <span className="text-[9px] md:text-[10px] font-black bg-[#C5A059] text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">Shop Now →</span>
+                        <span className="text-[14px] md:text-[15px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
+                        <span className="text-[10px] md:text-[11px] font-black bg-[#C5A059] text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">Shop Now →</span>
                       </Link>
                     ) : (
-                      <span className="text-[12px] md:text-[13px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
+                      <span className="text-[14px] md:text-[15px] font-black uppercase tracking-[0.25em]">📢 {offer.text}</span>
                     )}
                   </motion.div>
                 )
