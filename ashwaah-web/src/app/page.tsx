@@ -248,7 +248,7 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
               {homepageCatCards.map((item) => {
                 const CardContent = (
-                  <div className="group relative w-full aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border border-brand/5 flex flex-col justify-end transition-all duration-500 hover:scale-[1.03] hover:shadow-xl">
+                  <div className="group relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-lg border border-brand/5 flex flex-col justify-end transition-all duration-500 hover:scale-[1.03] hover:shadow-xl">
                     <img 
                       src={item.imageUrl} 
                       alt={item.name} 
@@ -259,14 +259,14 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none"></div>
                     
                     {/* Overlaid coral-orange card at bottom */}
-                    <div className="relative z-10 m-4 p-4 bg-[#cd5533]/90 backdrop-blur-sm text-white rounded-2xl shadow-md text-center transition-all duration-300 group-hover:bg-[#cd5533] flex flex-col items-center justify-center">
-                      <span className="text-[10px] md:text-xs tracking-wider uppercase font-medium text-center w-full block break-words">
+                    <div className="relative z-10 w-full p-3 bg-[#cd5533]/90 backdrop-blur-sm text-white rounded-t-2xl text-center transition-all duration-300 group-hover:bg-[#cd5533] flex flex-col items-center justify-center">
+                      <span className="text-[9px] md:text-[10px] tracking-wider uppercase font-medium text-center w-full block break-words">
                         {item.name}
                       </span>
-                      <span className="text-sm md:text-base font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
+                      <span className="text-xs md:text-sm font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
                         {item.promoText}
                       </span>
-                      <span className="text-[9px] font-bold tracking-widest uppercase border-t border-white/20 pt-1.5 mt-1.5 w-full block transition-colors group-hover:text-white">
+                      <span className="text-[8px] font-bold tracking-widest uppercase border-t border-white/20 pt-1 mt-1 w-full block transition-colors group-hover:text-white">
                         {item.actionText || "Shop Now"}
                       </span>
                     </div>

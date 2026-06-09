@@ -326,7 +326,7 @@ export default function CategorySettingsPage() {
                 Live Card Mockup Preview
               </span>
               
-              <div className="relative mx-auto w-48 aspect-[3/4] rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex flex-col justify-end border border-brand/5 group">
+              <div className="relative mx-auto w-48 aspect-[4/5] rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex flex-col justify-end border border-brand/5 group">
                 {imageUrl ? (
                   <img
                     src={imageUrl}
@@ -344,14 +344,14 @@ export default function CategorySettingsPage() {
                 )}
                 
                 {/* Overlay Card */}
-                <div className="relative z-10 m-3 p-3 bg-[#cd5533] text-white rounded-xl shadow-md text-center flex flex-col items-center justify-center">
-                  <span className="text-[10px] tracking-wide uppercase font-medium text-center w-full block break-words">
+                <div className="relative z-10 w-full p-2.5 bg-[#cd5533] text-white rounded-t-xl text-center flex flex-col items-center justify-center">
+                  <span className="text-[9px] tracking-wide uppercase font-medium text-center w-full block break-words">
                     {name || "Category Name"}
                   </span>
-                  <span className="text-sm font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
+                  <span className="text-xs font-bold font-playfair tracking-tight leading-tight my-0.5 uppercase text-center w-full block break-words">
                     {promoText || "Promo Text"}
                   </span>
-                  <span className="text-[9px] font-bold tracking-widest uppercase opacity-90 border-t border-white/20 pt-1 mt-1 w-full block">
+                  <span className="text-[8px] font-bold tracking-widest uppercase opacity-90 border-t border-white/20 pt-1 mt-1 w-full block">
                     {actionText || "Shop Now"}
                   </span>
                 </div>
