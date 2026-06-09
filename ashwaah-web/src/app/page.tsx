@@ -84,7 +84,7 @@ export default function Home() {
     if (offers.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentOfferIndex((prev) => (prev + 1) % offers.length);
-    }, 8000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [offers.length]);
   return (
@@ -101,7 +101,7 @@ export default function Home() {
                     initial={{ opacity: 0, x: "-100%" }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: "100%" }}
-                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="absolute inset-0 flex items-center justify-center px-4"
                   >
                     {offer.link ? (
