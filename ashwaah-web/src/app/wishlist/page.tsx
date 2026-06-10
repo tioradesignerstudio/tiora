@@ -305,7 +305,6 @@ export default function WishlistPage() {
                         href={`/category/${item.category.toLowerCase().trim().replace(/\s+/g, "-")}`}
                         className="w-full mt-auto flex items-center justify-center space-x-2 font-bold py-3.5 rounded-2xl transition-all text-xs tracking-wider uppercase shadow-md bg-[#064e3b] text-white hover:bg-[#32451B] border border-transparent hover:border-brand-accent/20 cursor-pointer"
                       >
-                        <ShoppingBag size={14} />
                         <span>SHOW SIMILAR</span>
                       </Link>
                     ) : (
