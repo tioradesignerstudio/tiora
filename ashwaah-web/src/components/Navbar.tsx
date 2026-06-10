@@ -182,14 +182,8 @@ export default function Navbar() {
                 <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">My Story</span>
               </Link>
 
-              <button
-                onClick={() => {
-                  if (user) {
-                    setIsWishlistOpen(true);
-                  } else {
-                    window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`;
-                  }
-                }}
+              <Link
+                href={user ? "/wishlist" : `/login?redirect=${encodeURIComponent(pathname)}`}
                 aria-label="Wishlist"
                 className="hover:text-[#C5A059] transition-colors relative p-2 cursor-pointer"
               >
@@ -199,7 +193,7 @@ export default function Navbar() {
                     {wishlistItems.length}
                   </span>
                 )}
-              </button>
+              </Link>
 
               <Link href={user ? "/cart" : "/login"} aria-label="Cart" className="hover:text-[#C5A059] transition-colors relative p-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -232,14 +226,8 @@ export default function Navbar() {
               <Link href="/my-story" aria-label="My Story" className="text-white p-2">
                 <BookOpen className="h-5 w-5" />
               </Link>
-              <button
-                onClick={() => {
-                  if (user) {
-                    setIsWishlistOpen(true);
-                  } else {
-                    window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`;
-                  }
-                }}
+              <Link
+                href={user ? "/wishlist" : `/login?redirect=${encodeURIComponent(pathname)}`}
                 aria-label="Wishlist"
                 className="text-white relative p-2 cursor-pointer"
               >
@@ -249,7 +237,7 @@ export default function Navbar() {
                     {wishlistItems.length}
                   </span>
                 )}
-              </button>
+              </Link>
 
               <Link href={user ? "/cart" : "/login"} aria-label="Cart" className="text-white relative p-2">
                 <ShoppingCart className="h-5 w-5" />
