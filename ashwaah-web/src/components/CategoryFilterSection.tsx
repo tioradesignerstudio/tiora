@@ -582,10 +582,14 @@ export default function CategoryFilterSection({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 animate-in fade-in duration-300">
                 {filteredAndSortedProducts.map((p) => {
                   let firstImage = "/images/placeholder.png";
+                  let parsedImagesList: string[] = [];
                   try {
                     const parsedImages = JSON.parse(p.images || "[]");
-                    if (Array.isArray(parsedImages) && parsedImages.length > 0) {
-                      firstImage = parsedImages[0];
+                    if (Array.isArray(parsedImages)) {
+                      parsedImagesList = parsedImages;
+                      if (parsedImages.length > 0) {
+                        firstImage = parsedImages[0];
+                      }
                     } else if (p.imageUrl) {
                       firstImage = p.imageUrl;
                     }
@@ -601,6 +605,7 @@ export default function CategoryFilterSection({
                     basePrice: p.basePrice,
                     salePrice: p.salePrice ?? undefined,
                     imageUrl: firstImage,
+                    images: parsedImagesList,
                     categorySlug: slug,
                     isCustomizable: p.isCustomizable ?? undefined,
                   };

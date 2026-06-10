@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { usePathname } from 'next/navigation';
+import HoverImageCarousel from './HoverImageCarousel';
 
 interface Product {
   id: string;
@@ -13,6 +14,7 @@ interface Product {
   basePrice?: number;
   salePrice?: number;
   imageUrl: string;
+  images?: string[];
   categorySlug: string;
   isCustomizable?: boolean;
 }
@@ -64,10 +66,11 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-[8px] font-black uppercase tracking-[0.15em] text-brand">Customizable</span>
           </div>
         )}
-        <img 
-          src={product.imageUrl || "/images/placeholder.png"} 
-          alt={product.name} 
-          className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
+        <HoverImageCarousel 
+          images={product.images || []}
+          defaultImage={product.imageUrl || "/images/placeholder.png"}
+          alt={product.name}
+          className="transform group-hover:scale-105 transition-transform duration-700" 
         />
       </div>
       

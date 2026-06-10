@@ -7,6 +7,7 @@ import { Heart, Trash2, ShoppingBag, X, Check, ArrowRight, Loader2 } from "lucid
 import { motion, AnimatePresence } from "framer-motion";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCartStore } from "@/store/useCartStore";
+import HoverImageCarousel from "@/components/HoverImageCarousel";
 
 interface Variation {
   id: number;
@@ -269,10 +270,11 @@ export default function WishlistPage() {
 
                   {/* Image */}
                   <Link href={`/product/${item.productId}`} className="relative w-full aspect-[4/5] overflow-hidden bg-brand-light/50 border-b border-brand/5 block">
-                    <img
-                      src={item.imageUrl || "/images/placeholder.png"}
+                    <HoverImageCarousel 
+                      images={item.images || []}
+                      defaultImage={item.imageUrl || "/images/placeholder.png"}
                       alt={item.name}
-                      className={`absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ${
+                      className={`transform group-hover:scale-105 transition-transform duration-700 ${
                         item.totalStock === 0 ? "opacity-60 grayscale" : ""
                       }`}
                     />

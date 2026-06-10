@@ -6,6 +6,7 @@ export interface WishlistItem {
   name: string;
   price: number;
   imageUrl: string;
+  images?: string[];
   category: string;
   description: string;
   totalStock?: number;
@@ -42,10 +43,14 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
         if (data.success) {
           const mapped = data.items.map((item: any) => {
             let firstImage = "/images/placeholder.png";
+            let parsedImagesList: string[] = [];
             try {
               const parsedImages = JSON.parse(item.product.images || "[]");
-              if (Array.isArray(parsedImages) && parsedImages.length > 0) {
-                firstImage = parsedImages[0];
+              if (Array.isArray(parsedImages)) {
+                parsedImagesList = parsedImages;
+                if (parsedImages.length > 0) {
+                  firstImage = parsedImages[0];
+                }
               } else if (item.product.imageUrl) {
                 firstImage = item.product.imageUrl;
               }
@@ -63,6 +68,7 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
               name: item.product.name,
               price: activePrice,
               imageUrl: firstImage,
+              images: parsedImagesList,
               category: item.product.category || "",
               description: item.product.description || "",
               totalStock: item.totalStock ?? 0,
