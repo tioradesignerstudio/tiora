@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isAdminPhone } from "./utils/admin-helper";
 
 /**
  * Decodes the payload of a standard JWT token.
@@ -50,7 +51,6 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get("auth_session")?.value;
   const adminSessionCookie = request.cookies.get("admin_session")?.value;
   const { pathname } = request.nextUrl;
-  const adminPhone = "9999999999";
 
   const userSession = verifySession(sessionCookie);
   const adminSession = verifySession(adminSessionCookie);
@@ -67,7 +67,7 @@ export function middleware(request: NextRequest) {
     // Exclude the login and denied pages from protection to avoid redirect loops
     if (pathname === "/admin/login" || pathname === "/admin/denied") {
       // If already logged in as admin, don't show login page
-      if (pathname === "/admin/login" && adminSession?.phone === adminPhone) {
+      if (pathname === "/admin/login" && adminSession?.phone && isAdminPhone(adminSession.phone)) {
         return NextResponse.redirect(new URL("/admin/navigation", request.url));
       }
       return NextResponse.next();
@@ -78,7 +78,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Strict Admin Identity Check
-    if (!adminSession || adminSession.phone !== adminPhone) {
+    if (!adminSession || !isAdminPhone(adminSession.phone)) {
       console.warn(`[Security] Unauthorized admin access attempt`);
       return NextResponse.redirect(new URL("/admin/denied", request.url));
     }

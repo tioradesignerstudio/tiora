@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { adminAuth } from "@/db/firebase-admin";
+import { isAdminPhone } from "@/utils/admin-helper";
 
 export interface DecodedAdminToken {
   uid: string;
@@ -35,17 +36,15 @@ export async function verifyAdminRequest(request?: Request): Promise<DecodedAdmi
       return null;
     }
 
-    const adminPhone = process.env.ADMIN_PHONE_NUMBER || "9999999999";
-
     // Support local developer mock mode (10-digit number)
     const isRawPhone = /^\d{10}$/.test(token);
     const isMock = !adminAuth || isRawPhone;
 
     if (isMock) {
-      if (token === adminPhone) {
+      if (isAdminPhone(token)) {
         return {
           uid: "mock-admin-uid",
-          phone_number: `+91${adminPhone}`,
+          phone_number: `+91${token}`,
         };
       }
       return null;
@@ -69,9 +68,9 @@ export async function verifyAdminRequest(request?: Request): Promise<DecodedAdmi
       return null;
     }
 
-    // Normalize phone to 10-digit and match designated admin
+    // Normalize phone to 10-digit and match designated admin whitelist
     const normalizedPhone = phone.replace(/^\+91/, "").replace(/\D/g, "");
-    if (normalizedPhone !== adminPhone) {
+    if (!isAdminPhone(normalizedPhone)) {
       console.warn(`[Security] Unauthorized admin access attempt from phone: ${phone}`);
       return null;
     }

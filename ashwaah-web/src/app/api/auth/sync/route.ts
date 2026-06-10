@@ -4,12 +4,12 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/db/firebase-admin";
+import { isAdminPhone } from "@/utils/admin-helper";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { phone: rawPhone, idToken } = body;
-    const adminPhone = "9999999999";
 
     let phone = rawPhone;
     let verifiedToken = idToken;
@@ -61,20 +61,22 @@ export async function POST(request: Request) {
     
     user = userResult[0];
 
+    const isUserAdmin = isAdminPhone(phone);
+
     if (!user) {
       // Register new user automatically if not found
       await db.insert(users).values({
         phoneNumber: phone,
-        role: phone === adminPhone ? "admin" : "user",
+        role: isUserAdmin ? "admin" : "user",
         lastLoginAt: new Date().toISOString(),
       });
       isNewUser = true;
     } else {
-      // Update lastLoginAt and upgrade role to admin if matching admin number
+      // Update lastLoginAt and upgrade role to admin if matching admin whitelist
       await db.update(users)
         .set({ 
           lastLoginAt: new Date().toISOString(),
-          ...(phone === adminPhone && user.role !== "admin" ? { role: "admin" } : {})
+          ...(isUserAdmin && user.role !== "admin" ? { role: "admin" } : {})
         })
         .where(eq(users.phoneNumber, phone));
       
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const cookieName = phone === adminPhone ? "admin_session" : "auth_session";
+    const cookieName = isUserAdmin ? "admin_session" : "auth_session";
     const response = NextResponse.json({ 
       success: true, 
       isNewUser, 

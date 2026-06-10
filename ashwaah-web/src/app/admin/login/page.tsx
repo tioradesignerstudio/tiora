@@ -16,8 +16,6 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
-  const adminPhone = "9999999999";
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
     setPhone(value);
@@ -32,17 +30,28 @@ export default function AdminLogin() {
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone !== adminPhone) {
-      setError("Unauthorized phone number. This portal is for administrators only.");
-      return;
-    }
+    if (phone.length !== 10) return;
 
     setLoading(true);
     setError("");
 
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-
     try {
+      // Query server-side check-admin endpoint to keep admin numbers hidden from client
+      const checkRes = await fetch("/api/auth/check-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const checkData = await checkRes.json();
+
+      if (!checkData.success || !checkData.isAdmin) {
+        setError("Unauthorized phone number. This portal is for administrators only.");
+        setLoading(false);
+        return;
+      }
+
+      const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+
       if (isFirebaseEnabled) {
         // Initialize invisible ReCAPTCHA verifier
         const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
