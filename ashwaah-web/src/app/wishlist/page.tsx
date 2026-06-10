@@ -279,7 +279,7 @@ export default function WishlistPage() {
                       }`}
                     />
                     {item.totalStock === 0 && (
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-white px-6 py-2.5 z-20 border-t border-x border-brand/5 shadow-sm">
+                      <div className="absolute bottom-0 left-0 w-full bg-[#FFFDF6] py-2.5 z-20 border-t border-brand/5 text-center">
                         <span className="text-[10px] md:text-xs font-black tracking-[0.15em] text-[#FF4E20] uppercase whitespace-nowrap">
                           OUT OF STOCK
                         </span>
