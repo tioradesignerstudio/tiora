@@ -404,7 +404,7 @@ export default function SettingsPage() {
             </div>
 
             {/* 2. Offer Carousel Banner Mockup (1cm to 2cm) */}
-            <div className="h-14 bg-[#FFFDF6] text-[#3E5622] flex items-center justify-center px-4 relative z-10 shadow-sm border-b border-[#3E5622]/10">
+            <div className="h-14 bg-[#F5EBE0] text-[#3E5622] flex items-center justify-center px-4 relative z-10 shadow-sm border-b border-[#3E5622]/10">
               {offers.length > 0 ? (
                 (() => {
                   const { title, subtitle } = parseOfferText(offers[0].text);
@@ -419,9 +419,9 @@ export default function SettingsPage() {
                         <>
                           {/* Dashed Divider with top/bottom circular cutouts */}
                           <div className="relative h-full flex items-center px-1">
-                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#FFFDF6] rounded-full"></div>
+                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#F5EBE0] rounded-full"></div>
                             <div className="h-3/5 border-l border-dashed border-white/50"></div>
-                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#FFFDF6] rounded-full"></div>
+                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#F5EBE0] rounded-full"></div>
                           </div>
                           
                           {/* Right Subtitle */}
@@ -434,7 +434,7 @@ export default function SettingsPage() {
                       {/* Jagged right edge (torn coupon effect) */}
                       <div className="absolute right-0 top-0 bottom-0 w-1 flex flex-col justify-between py-1">
                         {Array.from({ length: 4 }).map((_, i) => (
-                          <div key={i} className="w-1 h-1.5 bg-[#FFFDF6] rounded-l-full"></div>
+                          <div key={i} className="w-1 h-1.5 bg-[#F5EBE0] rounded-l-full"></div>
                         ))}
                       </div>
                     </div>
