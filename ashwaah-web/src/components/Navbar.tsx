@@ -193,9 +193,9 @@ export default function Navbar() {
                 aria-label="Wishlist"
                 className="hover:text-[#C5A059] transition-colors relative p-2 cursor-pointer"
               >
-                <Heart className={`h-5 w-5 transition-all ${user && wishlistItems.length > 0 ? "fill-red-500 text-red-500" : ""}`} />
+                <Heart className="h-5 w-5 text-white" />
                 {user && wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 bg-[#C5A059] text-white text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
+                  <span className="absolute top-0 right-0 bg-[#FFFDF6] text-[#3E5622] text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -203,7 +203,7 @@ export default function Navbar() {
 
               <Link href={user ? "/cart" : "/login"} aria-label="Cart" className="hover:text-[#C5A059] transition-colors relative p-2">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute top-0 right-0 bg-[#C5A059] text-white text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
+                <span className="absolute top-0 right-0 bg-[#FFFDF6] text-[#3E5622] text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
                   {cartCount}
                 </span>
               </Link>
@@ -243,9 +243,9 @@ export default function Navbar() {
                 aria-label="Wishlist"
                 className="text-white relative p-2 cursor-pointer"
               >
-                <Heart className={`h-5 w-5 transition-all ${user && wishlistItems.length > 0 ? "fill-red-500 text-red-500" : ""}`} />
+                <Heart className="h-5 w-5 text-white" />
                 {user && wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 bg-[#C5A059] text-white text-[9px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
+                  <span className="absolute top-0 right-0 bg-[#FFFDF6] text-[#3E5622] text-[9px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -253,7 +253,7 @@ export default function Navbar() {
 
               <Link href={user ? "/cart" : "/login"} aria-label="Cart" className="text-white relative p-2">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute top-0 right-0 bg-[#C5A059] text-white text-[9px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
+                <span className="absolute top-0 right-0 bg-[#FFFDF6] text-[#3E5622] text-[9px] font-black h-4 w-4 rounded-full flex items-center justify-center border-2 border-[#3E5622]">
                   {cartCount}
                 </span>
               </Link>
@@ -285,7 +285,7 @@ export default function Navbar() {
                       className="flex items-center space-x-4 px-4 py-4 rounded-xl bg-white/5"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <div className="w-10 h-10 rounded-full bg-[#C5A059] flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full bg-[#FFFDF6] flex items-center justify-center text-[#3E5622] font-bold">
                         {user.fullName?.charAt(0) || "U"}
                       </div>
                       <div>
