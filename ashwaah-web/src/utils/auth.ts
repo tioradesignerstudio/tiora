@@ -51,8 +51,19 @@ export async function verifyAdminRequest(request?: Request): Promise<DecodedAdmi
       return null;
     }
 
-    // Verify ID token using Firebase Admin SDK
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    // Verify ID token or Session Cookie using Firebase Admin SDK
+    let decodedToken: any;
+    try {
+      decodedToken = await adminAuth.verifySessionCookie(token);
+    } catch {
+      try {
+        decodedToken = await adminAuth.verifyIdToken(token);
+      } catch (err) {
+        console.error("[Auth Utility] Token verification failed:", err);
+        return null;
+      }
+    }
+
     const phone = decodedToken.phone_number;
     if (!phone) {
       return null;

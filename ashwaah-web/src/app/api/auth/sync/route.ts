@@ -27,6 +27,11 @@ export async function POST(request: Request) {
         }
         // Normalize the verified phone number by stripping country code (+91)
         phone = firebasePhone.replace(/^\+91/, "").replace(/\D/g, "");
+
+        // Create a Firebase Session Cookie using the verified ID token
+        // Session duration: 5 days (in milliseconds)
+        const expiresIn = 1000 * 60 * 60 * 24 * 5;
+        verifiedToken = await adminAuth.createSessionCookie(idToken, { expiresIn });
       } catch (err: any) {
         console.error("Firebase ID Token verification failed during sync:", err.message);
         return NextResponse.json(
@@ -85,11 +90,14 @@ export async function POST(request: Request) {
       message: isNewUser ? "Welcome! Please tell us your name." : "Welcome back!" 
     });
 
+    // Set maxAge matching the 5 days session cookie duration (or 30 days for mock phone token)
+    const maxAge = idToken ? 60 * 60 * 24 * 5 : 60 * 60 * 24 * 30;
+
     response.cookies.set(cookieName, verifiedToken, { 
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge,
       path: "/",
     });
 

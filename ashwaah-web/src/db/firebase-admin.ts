@@ -7,23 +7,30 @@ const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
 let adminAuth: any = null;
 
+const isDummyKey = !privateKey || privateKey.includes("...") || privateKey.includes("your-") || privateKey.includes("placeholder");
+
 // Safeguard against multiple initializations during Next.js hot-reloading
 if (getApps().length === 0) {
-  if (projectId && clientEmail && privateKey) {
+  if (projectId && clientEmail && privateKey && !isDummyKey) {
     // Newline fix for private keys loaded from environment variables
     const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
 
-    initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey: formattedPrivateKey,
-      }),
-    });
-    console.log("[Firebase Admin] Initialized successfully with credentials.");
+    try {
+      initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey: formattedPrivateKey,
+        }),
+      });
+      console.log("[Firebase Admin] Initialized successfully with credentials.");
+    } catch (err: any) {
+      console.error("[Firebase Admin] Initialization failed:", err.message);
+      console.warn("[Firebase Admin] Falling back to local mock mode.");
+    }
   } else {
     console.warn(
-      "[Firebase Admin] Missing credential variables. Local mock mode is enabled."
+      "[Firebase Admin] Missing or dummy credential variables. Local mock mode is enabled."
     );
   }
 }
