@@ -159,7 +159,7 @@ export default function Navbar() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for products, brands and more"
-                    className="w-full bg-[#F4F4F5] text-brand-dark pl-9 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#C5A059] placeholder:text-brand-dark/45 transition-all shadow-sm"
+                    className="w-full bg-[#FFFDF6] text-brand-dark pl-9 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#C5A059] placeholder:text-brand-dark/45 transition-all shadow-sm"
                   />
                 </form>
               </div>
