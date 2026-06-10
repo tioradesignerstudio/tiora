@@ -122,7 +122,7 @@ export default function Footer() {
               <Facebook size={18} />
             </a>
             <a 
-              href="https://www.instagram.com/ashwaah1988?igsh=MWpucWdvdWFmbzJnZA%3D%3D&utm_source=qr" 
+              href="https://www.instagram.com/ashwaah_store?igsh=MWpucWdvdWFmbzJnZA%3D%3D&utm_source=qr" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="hover:text-white transition" 
