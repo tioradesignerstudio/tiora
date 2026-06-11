@@ -51,15 +51,44 @@ export async function GET(request: Request) {
       )
     ).limit(100);
 
+    // Helper to check if a token matches a text field
+    const matchesTextField = (field: string | null, token: string) => {
+      if (!field) return false;
+      const cleanField = field.toLowerCase();
+      const cleanToken = token.toLowerCase();
+      
+      // If token is short, require whole-word boundary match to avoid substring false positives (e.g. "red" in "embroidered")
+      if (cleanToken.length <= 3) {
+        const regex = new RegExp(`\\b${cleanToken}\\b`, "i");
+        return regex.test(cleanField);
+      }
+      return cleanField.includes(cleanToken);
+    };
+
+    // Helper to check if a token matches colors array/string
+    const matchesColorField = (colorsStr: string | null, token: string) => {
+      if (!colorsStr) return false;
+      const cleanToken = token.toLowerCase();
+      try {
+        const parsed = JSON.parse(colorsStr);
+        if (Array.isArray(parsed)) {
+          return parsed.some((c) => c.toLowerCase().trim() === cleanToken);
+        }
+      } catch {}
+      return matchesTextField(colorsStr, token);
+    };
+
+    // Helper to check if a token matches tags
+    const matchesTagsField = (tagsStr: string | null, token: string) => {
+      if (!tagsStr) return false;
+      const cleanToken = token.toLowerCase();
+      const tagsList = tagsStr.split(",").map((t) => t.trim().toLowerCase());
+      return tagsList.some((t) => t === cleanToken || (cleanToken.length > 3 && t.includes(cleanToken)));
+    };
+
     // Score and rank matched products based on original query tokens
     const scoredResults = results.map((p) => {
       let score = 0;
-      const name = (p.name || "").toLowerCase();
-      const description = (p.description || "").toLowerCase();
-      const category = (p.category || "").toLowerCase();
-      const gender = (p.gender || "").toLowerCase();
-      const tags = (p.tags || "").toLowerCase();
-      const colors = (p.colors || "").toLowerCase();
 
       tokens.forEach((origToken) => {
         const variants = [origToken];
@@ -72,19 +101,19 @@ export async function GET(request: Request) {
         }
 
         const matchesAnyVariant = variants.some((v) => 
-          name.includes(v) ||
-          description.includes(v) ||
-          category.includes(v) ||
-          gender.includes(v) ||
-          tags.includes(v) ||
-          colors.includes(v)
+          matchesTextField(p.name, v) ||
+          matchesTextField(p.description, v) ||
+          matchesTextField(p.category, v) ||
+          matchesTextField(p.gender, v) ||
+          matchesTagsField(p.tags, v) ||
+          matchesColorField(p.colors, v)
         );
 
         if (matchesAnyVariant) {
           score += 1;
           // Add extra weight if matched in name or tags
-          const matchesName = variants.some(v => name.includes(v));
-          const matchesTags = variants.some(v => tags.includes(v));
+          const matchesName = variants.some(v => matchesTextField(p.name, v));
+          const matchesTags = variants.some(v => matchesTagsField(p.tags, v));
           if (matchesName) score += 0.5;
           if (matchesTags) score += 0.3;
         }
