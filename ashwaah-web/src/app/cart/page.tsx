@@ -313,17 +313,17 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between items-center text-white/50 pb-3 border-b border-white/10">
                 <span className="text-[10px] font-bold tracking-widest uppercase">Shipping</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A059]">Free</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFDF6]">Free</span>
               </div>
               <div className="flex justify-between items-center pt-2">
                 <span className="text-sm font-black tracking-widest uppercase">Total Amount</span>
-                <span className="text-lg font-black text-[#C5A059] tracking-widest">₹{total.toLocaleString()}</span>
+                <span className="text-lg font-black text-[#FFFDF6] tracking-widest">₹{total.toLocaleString()}</span>
               </div>
             </div>
 
             <button 
               onClick={handleCheckout}
-              className="w-full bg-[#C5A059] text-white py-4 rounded-2xl font-bold tracking-[0.2em] uppercase text-[10px] hover:bg-[#B38E46] transition-all shadow-xl flex items-center justify-center group active:scale-[0.98]"
+              className="w-full bg-[#FFFDF6] text-[#1B3022] py-4 rounded-2xl font-bold tracking-[0.2em] uppercase text-[10px] hover:bg-[#FFFDF6]/90 transition-all shadow-xl flex items-center justify-center group active:scale-[0.98]"
             >
               Proceed to Checkout
               <ArrowRight size={14} className="ml-3 group-hover:translate-x-1 transition-transform" />
