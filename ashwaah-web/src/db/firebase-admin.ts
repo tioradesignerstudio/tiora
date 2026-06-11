@@ -14,7 +14,12 @@ const isDummyKey = !privateKey || privateKey.includes("...") || privateKey.inclu
 if (getApps().length === 0) {
   if (projectId && clientEmail && privateKey && !isDummyKey) {
     // Newline and quotes fix for private keys loaded from environment variables
-    const formattedPrivateKey = privateKey.replace(/^["']|["']$/g, "").replace(/\\n/g, "\n");
+    let formattedPrivateKey = privateKey;
+    if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+      try { formattedPrivateKey = JSON.parse(formattedPrivateKey); } catch (e) {}
+    }
+    // A PEM file doesn't have quotes, so we can safely strip all double and single quotes
+    formattedPrivateKey = formattedPrivateKey.replace(/['"]/g, "").replace(/\\n/g, "\n").trim();
 
     try {
       initializeApp({
