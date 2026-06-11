@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { adminAuth } from "@/db/firebase-admin";
 import { isAdminPhone } from "@/utils/admin-helper";
 
 export async function POST(request: Request) {
   try {
+    // Dynamically import database and firebase-admin modules to catch initialization errors
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { adminAuth } = await import("@/db/firebase-admin");
+
     const body = await request.json();
     const { phone: rawPhone, idToken } = body;
 
@@ -17,6 +19,9 @@ export async function POST(request: Request) {
     if (idToken) {
       // 1. Firebase Token Verification
       try {
+        if (!adminAuth) {
+          throw new Error("Firebase adminAuth is null. Firebase Admin SDK was not initialized correctly.");
+        }
         const decoded = await adminAuth.verifyIdToken(idToken);
         const firebasePhone = decoded.phone_number;
         if (!firebasePhone) {
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
       } catch (err: any) {
         console.error("Firebase ID Token verification failed during sync:", err.message);
         return NextResponse.json(
-          { success: false, error: "Invalid or expired session token" },
+          { success: false, error: `Firebase Token verification failed: ${err.message}` },
           { status: 401 }
         );
       }
@@ -109,7 +114,8 @@ export async function POST(request: Request) {
     console.error(`Sync API Error:`, error);
     return NextResponse.json({ 
       success: false, 
-      error: "A server error occurred during sync." 
+      error: `Server sync error: ${error.message}`,
+      stack: error.stack
     }, { status: 500 });
   }
 }
