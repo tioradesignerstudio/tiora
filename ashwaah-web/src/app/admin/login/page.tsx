@@ -50,7 +50,7 @@ export default function AdminLogin() {
         return;
       }
 
-      const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+      const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
 
       if (isFirebaseEnabled) {
         // Initialize invisible ReCAPTCHA verifier
@@ -81,7 +81,7 @@ export default function AdminLogin() {
     setLoading(true);
     setError("");
 
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
 
     try {
       let idToken = null;

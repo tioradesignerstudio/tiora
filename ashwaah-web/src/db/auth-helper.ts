@@ -17,8 +17,8 @@ export async function getVerifiedPhoneFromCookie(cookieName: "auth_session" | "a
       return token;
     }
 
-    // Securely verify ID token using Firebase Admin SDK
-    const decoded = await adminAuth.verifyIdToken(token);
+    // Securely verify session cookie using Firebase Admin SDK
+    const decoded = await adminAuth.verifySessionCookie(token);
     const phone = decoded.phone_number;
     if (!phone) return null;
 

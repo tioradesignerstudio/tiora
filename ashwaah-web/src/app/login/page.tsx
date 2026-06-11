@@ -47,7 +47,7 @@ export default function Login() {
     setLoading(true);
     setError("");
     
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
     
     try {
       if (isFirebaseEnabled) {
@@ -80,7 +80,7 @@ export default function Login() {
     setLoading(true);
     setError("");
     
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
     
     try {
       let idToken = null;
@@ -114,8 +114,7 @@ export default function Login() {
         setStep("profile");
       } else {
         const redirect = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("redirect") || "/") : "/";
-        router.push(redirect);
-        router.refresh();
+        window.location.href = redirect;
       }
     } catch (err: any) {
       console.error("Verification error:", err);
@@ -145,8 +144,7 @@ export default function Login() {
       }
       
       const redirect = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("redirect") || "/") : "/";
-      router.push(redirect);
-      router.refresh();
+      window.location.href = redirect;
     } catch (err: any) {
       console.error("Profile error:", err);
       setError(err.message || "Failed to complete profile.");
