@@ -20,7 +20,8 @@ export async function GET(request: Request) {
         like(products.category, searchQuery),
         like(products.gender, searchQuery),
         like(products.tags, searchQuery),
-        like(products.description, searchQuery)
+        like(products.description, searchQuery),
+        like(products.colors, searchQuery)
       )
     ).limit(50); // Increased limit slightly to ensure a rich list of results for filtering
 
