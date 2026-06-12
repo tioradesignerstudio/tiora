@@ -33,6 +33,9 @@ export default function AdminOrders() {
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const ORDER_STATUSES = [
     "pending",
@@ -90,12 +93,39 @@ export default function AdminOrders() {
   };
 
   const filteredOrders = orders.filter(order => {
+    // Search term filter
     const s = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       order.id.toString().includes(s) ||
-      order.customerPhone?.includes(s) ||
+      (order.customerPhone || "").includes(s) ||
       (order.customerName || "").toLowerCase().includes(s)
     );
+    if (!matchesSearch) return false;
+
+    // Status filter
+    if (statusFilter && statusFilter !== "all") {
+      const orderStatus = (order.status || "").toLowerCase();
+      if (statusFilter === "pending" && orderStatus !== "pending") return false;
+      if (statusFilter === "confirmed" && orderStatus !== "confirmed") return false;
+      if (statusFilter === "processing" && !["processing", "shipped", "on the way", "out for delivery"].includes(orderStatus)) return false;
+      if (statusFilter === "completed" && orderStatus !== "delivered" && orderStatus !== "completed") return false;
+      if (statusFilter === "cancelled" && orderStatus !== "cancelled") return false;
+    }
+
+    // Date filters
+    const orderDate = new Date(order.createdAt);
+    if (fromDate) {
+      const [y, m, d] = fromDate.split("-").map(Number);
+      const from = new Date(y, m - 1, d, 0, 0, 0, 0);
+      if (orderDate < from) return false;
+    }
+    if (toDate) {
+      const [y, m, d] = toDate.split("-").map(Number);
+      const to = new Date(y, m - 1, d, 23, 59, 59, 999);
+      if (orderDate > to) return false;
+    }
+
+    return true;
   });
 
   const getStatusStyles = (status: string) => {
@@ -159,6 +189,71 @@ export default function AdminOrders() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* FILTER ORDERS SECTION */}
+      <div className="bg-white rounded-3xl p-6 border border-brand/5 shadow-sm mb-10">
+        <div className="flex items-center space-x-2 mb-6">
+          <div className="w-1.5 h-4 bg-brand rounded-full"></div>
+          <h3 className="text-xs font-black text-brand uppercase tracking-widest flex items-center gap-2">
+            Filter Orders
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+          <div>
+            <label className="block text-[10px] font-black text-brand/40 uppercase tracking-widest mb-2">Status</label>
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-white border border-brand/10 rounded-2xl py-3 px-4 text-xs font-bold text-brand focus:outline-none focus:ring-4 focus:ring-[#C5A059]/5 transition-all shadow-sm appearance-none pr-10"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40 text-brand" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-brand/40 uppercase tracking-widest mb-2">From Date</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full bg-white border border-brand/10 rounded-2xl py-3 px-4 text-xs font-bold text-brand focus:outline-none focus:ring-4 focus:ring-[#C5A059]/5 transition-all shadow-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-brand/40 uppercase tracking-widest mb-2">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full bg-white border border-[#064e3b]/10 rounded-2xl py-3 px-4 text-xs font-bold text-brand focus:outline-none focus:ring-4 focus:ring-[#C5A059]/5 transition-all shadow-sm"
+            />
+          </div>
+
+          <div>
+            <button
+              onClick={() => {
+                setStatusFilter("all");
+                setFromDate("");
+                setToDate("");
+              }}
+              disabled={statusFilter === "all" && !fromDate && !toDate}
+              className="w-full bg-transparent border border-red-100 hover:bg-red-50 text-red-400 hover:text-red-500 disabled:opacity-40 disabled:hover:bg-transparent disabled:text-red-300 font-black text-[10px] uppercase tracking-widest rounded-2xl py-3.5 px-6 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <span>✕ Clear Filters</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {filteredOrders.length === 0 ? (
