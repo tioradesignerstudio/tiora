@@ -258,10 +258,15 @@ export default function CategoryFilterSection({
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [activeThumb, setActiveThumb] = useState<"min" | "max">("min");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setPriceRange([minLimit, maxLimit]);
   }, [minLimit, maxLimit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTypes, selectedColors, selectedSizes, priceRange, sortBy]);
 
   const isPriceFilterActive = priceRange[0] !== minLimit || priceRange[1] !== maxLimit;
   const isFilterOrSortActive =
@@ -387,6 +392,19 @@ export default function CategoryFilterSection({
     return list;
   }, [productsWithTypes, selectedTypes, selectedColors, selectedSizes, sortBy, priceRange]);
 
+  const productsPerPage = 20;
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage;
+    return filteredAndSortedProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredAndSortedProducts, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleTypeToggle = (type: string) => {
     setSelectedTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
@@ -417,7 +435,7 @@ export default function CategoryFilterSection({
     <div className="flex flex-col lg:flex-row w-full items-stretch relative z-30">
       
       {/* Mobile Show Filters Toggle Button */}
-      <div className="lg:hidden w-full mb-2">
+      <div className="lg:hidden w-full sticky top-16 z-40 bg-brand-light/95 backdrop-blur-sm py-2 px-1 mb-2">
         <button
           onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
           className="w-full flex items-center justify-between bg-white border border-brand/10 px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-brand shadow-sm active:scale-99 transition-all"
@@ -548,7 +566,7 @@ export default function CategoryFilterSection({
         )}
 
         {/* Price Range Slider */}
-        <div className="mb-6 pb-6 border-b border-brand/5">
+        <div className="mb-4 pb-4 border-b border-brand/5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand/40 ml-1">Price Range</h3>
             <span className="text-xs font-bold text-brand/80">
@@ -599,7 +617,7 @@ export default function CategoryFilterSection({
         </div>
 
         {/* Section 4: Sort By */}
-        <div className="pt-4 border-t border-brand/5">
+        <div className="pt-2">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand/40 mb-3 ml-1">Sort Products</h3>
           <div className="relative">
             <select
@@ -667,7 +685,7 @@ export default function CategoryFilterSection({
                 </div>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 animate-in fade-in duration-300">
-                {filteredAndSortedProducts.map((p) => {
+                {paginatedProducts.map((p) => {
                   const parsedImagesList = getProductImageUrls(p.images, p.colors);
                   const firstImage = getFirstProductImageUrl(p.images, p.colors);
 
@@ -686,6 +704,45 @@ export default function CategoryFilterSection({
                   return <ProductCard key={p.id} product={productProps} />;
                 })}
               </div>
+
+              {/* Global Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-2 mt-10 pt-8 border-t border-brand/5">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-xl border border-brand/10 text-xs font-bold text-brand hover:bg-brand/5 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+                  >
+                    Prev
+                  </button>
+                  
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const pageNum = i + 1;
+                    const isCurrent = pageNum === currentPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          isCurrent
+                            ? "bg-brand text-[#C5A059] shadow-md scale-105"
+                            : "border border-brand/10 text-brand hover:bg-brand/5"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-xl border border-brand/10 text-xs font-bold text-brand hover:bg-brand/5 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div

@@ -72,10 +72,15 @@ function SearchResults() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [activeThumb, setActiveThumb] = useState<"min" | "max">("min");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setPriceRange([minLimit, maxLimit]);
   }, [minLimit, maxLimit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedGender, selectedColors, selectedSizes, priceRange, sortBy]);
 
   useEffect(() => {
     async function performSearch() {
@@ -105,6 +110,7 @@ function SearchResults() {
     setSelectedColors([]);
     setSelectedSizes([]);
     setSortBy("default");
+    setCurrentPage(1);
   }, [query]);
 
   // Helper to identify if a product is home decor
@@ -252,6 +258,19 @@ function SearchResults() {
     return list;
   }, [products, selectedGender, selectedColors, selectedSizes, sortBy, priceRange]);
 
+  const productsPerPage = 20;
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage;
+    return filteredAndSortedProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredAndSortedProducts, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleGenderToggle = (gender: "men" | "women") => {
     setSelectedGender((prev) => (prev === gender ? null : gender));
   };
@@ -320,7 +339,7 @@ function SearchResults() {
     <div className="w-full flex flex-col lg:flex-row items-stretch relative z-30">
       
       {/* Mobile Show Filters Toggle Button */}
-      <div className="lg:hidden w-full px-4 pt-4">
+      <div className="lg:hidden w-full sticky top-16 z-40 bg-brand-light/95 backdrop-blur-sm py-2 px-4 border-b border-[#064e3b]/5 shadow-sm">
         <button
           onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
           className="w-full flex items-center justify-between bg-white border border-[#064e3b]/10 px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-[#064e3b] shadow-sm active:scale-99 transition-all"
@@ -454,7 +473,7 @@ function SearchResults() {
         )}
 
         {/* Price Range Slider */}
-        <div className="mb-6 pb-6 border-b border-[#064e3b]/5">
+        <div className="mb-4 pb-4 border-b border-[#064e3b]/5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#064e3b]/40 ml-1">Price Range</h3>
             <span className="text-xs font-bold text-[#064e3b]/80">
@@ -552,28 +571,69 @@ function SearchResults() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredAndSortedProducts.map((product) => {
-              const parsedImages = getProductImageUrls(product.images, product.colors);
-              const firstImage = getFirstProductImageUrl(product.images, product.colors);
+          <div className="space-y-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {paginatedProducts.map((product) => {
+                const parsedImages = getProductImageUrls(product.images, product.colors);
+                const firstImage = getFirstProductImageUrl(product.images, product.colors);
 
-              return (
-                <ProductCard 
-                  key={product.id} 
-                  product={{
-                    id: product.id.toString(),
-                    name: product.name,
-                    description: product.description || "",
-                    price: product.salePrice || product.basePrice,
-                    basePrice: product.basePrice,
-                    salePrice: product.salePrice,
-                    imageUrl: firstImage,
-                    images: parsedImages,
-                    categorySlug: product.category || "all"
-                  }} 
-                />
-              );
-            })}
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    product={{
+                      id: product.id.toString(),
+                      name: product.name,
+                      description: product.description || "",
+                      price: product.salePrice || product.basePrice,
+                      basePrice: product.basePrice,
+                      salePrice: product.salePrice,
+                      imageUrl: firstImage,
+                      images: parsedImages,
+                      categorySlug: product.category || "all"
+                    }} 
+                  />
+                );
+              })}
+            </div>
+
+            {/* Global Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-2 pt-8 border-t border-[#064e3b]/5">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-[#064e3b]/10 text-xs font-bold text-[#064e3b] hover:bg-[#064e3b]/5 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+                >
+                  Prev
+                </button>
+                
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const pageNum = i + 1;
+                  const isCurrent = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-[#064e3b] text-[#C5A059] shadow-md scale-105"
+                          : "border border-[#064e3b]/10 text-[#064e3b] hover:bg-[#064e3b]/5"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-xl border border-[#064e3b]/10 text-xs font-bold text-[#064e3b] hover:bg-[#064e3b]/5 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

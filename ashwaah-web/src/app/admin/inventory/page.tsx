@@ -15,6 +15,21 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 
+interface VariationStats {
+  size: string;
+  totalStock: number;
+  totalSold: number;
+  totalToBeDelivered: number;
+  totalRemaining: number;
+  colors: Array<{
+    color: string;
+    stock: number;
+    sold: number;
+    toBeDelivered: number;
+    remaining: number;
+  }>;
+}
+
 interface ProductStats {
   id: number;
   name: string;
@@ -24,6 +39,7 @@ interface ProductStats {
   remaining: number;
   toBeDelivered: number;
   image: string | null;
+  variations?: VariationStats[];
 }
 
 export default function InventoryPage() {
@@ -245,19 +261,19 @@ export default function InventoryPage() {
 
                               {/* Stats Grid */}
                               <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100/50 text-center">
-                                  <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Sold</p>
-                                  <div className="flex items-center justify-center space-x-1">
-                                    <TrendingUp size={12} className="text-green-500" />
-                                    <p className="text-lg font-black text-green-700">{product.sold}</p>
-                                  </div>
-                                </div>
-                                
                                 <div className={`p-4 rounded-2xl border text-center ${product.remaining < 10 ? 'bg-red-50/50 border-red-100/50' : 'bg-brand/5 border-brand/5'}`}>
                                   <p className={`text-[8px] font-black uppercase tracking-widest mb-1 ${product.remaining < 10 ? 'text-red-600' : 'text-brand/40'}`}>Remaining</p>
                                   <div className="flex items-center justify-center space-x-1">
                                     {product.remaining < 10 && <AlertCircle size={12} className="text-red-500" />}
                                     <p className={`text-lg font-black ${product.remaining < 10 ? 'text-red-700' : 'text-brand'}`}>{product.remaining}</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100/50 text-center">
+                                  <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Sold</p>
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <TrendingUp size={12} className="text-green-500" />
+                                    <p className="text-lg font-black text-green-700">{product.sold}</p>
                                   </div>
                                 </div>
 
@@ -282,6 +298,71 @@ export default function InventoryPage() {
                                 <div className="mt-4 py-2 px-3 bg-gray-900 text-white rounded-xl flex items-center justify-center space-x-2">
                                   <Box size={12} />
                                   <span className="text-[9px] font-black uppercase tracking-widest">Out of Stock</span>
+                                </div>
+                              )}
+
+                              {/* Variations Stock Detail Section */}
+                              {product.variations && product.variations.length > 0 && (
+                                <div className="mt-6 pt-6 border-t border-brand/5 space-y-4">
+                                  <div className="flex items-center space-x-2 text-rose-500">
+                                    <Box size={14} className="text-rose-500" />
+                                    <span className="text-[10px] font-black uppercase tracking-wider">Variations Stock</span>
+                                  </div>
+                                  
+                                  <div className="space-y-4 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+                                    {product.variations.map((v) => (
+                                      <div key={v.size} className="bg-brand/[0.01] border border-brand/5 rounded-2xl p-4 space-y-3">
+                                        {/* Size Title & Summary Header */}
+                                        <div className="flex items-center justify-between">
+                                          {/* Size Badge */}
+                                          <div className="bg-white border border-brand/10 rounded-xl px-3.5 py-1.5 text-xs font-black text-brand shadow-sm min-w-[50px] text-center">
+                                            {v.size}
+                                          </div>
+                                          
+                                          {/* Size Columns Summary */}
+                                          <div className="flex space-x-6 text-[9px] font-bold uppercase tracking-widest text-right">
+                                            <div>
+                                              <p className="text-rose-500 font-bold">Stock Left</p>
+                                              <p className="text-xs font-black text-rose-600 mt-0.5">{v.totalRemaining}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-green-500 font-bold">Sold</p>
+                                              <p className="text-xs font-black text-green-600 mt-0.5">{v.totalSold}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-blue-500 font-bold">To Deliver</p>
+                                              <p className="text-xs font-black text-blue-600 mt-0.5">{v.totalToBeDelivered}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Colors List */}
+                                        <div className="space-y-2 pt-2 border-t border-dashed border-brand/5">
+                                          {v.colors.map((c) => (
+                                            <div key={c.color} className="flex items-center justify-between text-[11px] font-medium">
+                                              {/* Color Circle and Name */}
+                                              <div className="flex items-center space-x-2">
+                                                <div 
+                                                  className="w-2.5 h-2.5 rounded-full border border-brand/10 shadow-sm" 
+                                                  style={{ 
+                                                    backgroundColor: getHexColor(c.color) 
+                                                  }} 
+                                                />
+                                                <span className="text-brand/70 font-semibold">{c.color}</span>
+                                              </div>
+                                              
+                                              {/* Stats breakdown */}
+                                              <div className="flex space-x-6 text-[10px] font-bold text-right text-brand/40">
+                                                <span className="min-w-[45px] text-rose-500/70">{c.remaining} left</span>
+                                                <span className="min-w-[45px] text-green-500/70">{c.sold} sold</span>
+                                                <span className="min-w-[55px] text-blue-500/70">{c.toBeDelivered} pending</span>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -338,3 +419,50 @@ export default function InventoryPage() {
     </div>
   );
 }
+
+const getHexColor = (colorName: string) => {
+  const name = colorName.toLowerCase().trim();
+  const colorMap: Record<string, string> = {
+    black: "#000000",
+    blaek: "#000000",
+    white: "#ffffff",
+    red: "#ef4444",
+    green: "#22c55e",
+    blue: "#3b82f6",
+    grey: "#8b939c",
+    gray: "#8b939c",
+    maroon: "#800000",
+    "maroon red": "#800000",
+    "rama green": "#008d8c",
+    teal: "#008080",
+    turquoise: "#40e0d0",
+    gold: "#d4af37",
+    yellow: "#eab308",
+    orange: "#f97316",
+    pink: "#ec4899",
+    purple: "#a855f7",
+    indigo: "#6366f1",
+    brown: "#78350f",
+    beige: "#f5f5dc",
+    navy: "#1e3a8a",
+    lavender: "#e6e6fa",
+    olive: "#808000",
+    peach: "#ffdab9",
+    coral: "#ff7f50",
+    mint: "#98ff98",
+    cream: "#fffdd0",
+    mustard: "#ffdb58",
+    magenta: "#ff00ff",
+    plum: "#dda0dd",
+    rust: "#b7410e",
+    copper: "#b87333",
+    bronze: "#cd7f32",
+    tan: "#d2b48c",
+    khaki: "#c3b091",
+  };
+
+  if (colorMap[name]) return colorMap[name];
+  const found = Object.keys(colorMap).find(k => name.includes(k));
+  if (found) return colorMap[found];
+  return "#9ca3af";
+};
