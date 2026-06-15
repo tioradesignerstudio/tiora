@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Plus, Package, Trash2, Edit3, X, Star, Loader2, Check, Tag, Sparkles, Search, Scissors } from "lucide-react";
 import { MALE_MEASUREMENTS, FEMALE_MEASUREMENTS } from "@/constants/measurements";
 
@@ -129,7 +129,42 @@ export default function ProductManagement() {
     standard: []
   });
   const [customSizeInput, setCustomSizeInput] = useState("");
+  
+  // States and Refs for inline size button reordering
+  const [allSizesOrder, setAllSizesOrder] = useState<string[]>([]);
   const [draggedSizeIndex, setDraggedSizeIndex] = useState<number | null>(null);
+  const [dragModeSizeIndex, setDragModeSizeIndex] = useState<number | null>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Maintain allSizesOrder in sync with presets + customSizes of selected sizeSystem
+  useEffect(() => {
+    const presetSizes = SIZE_SYSTEMS[sizeSystem]?.sizes || [];
+    const custom = customSizes[sizeSystem] || [];
+    const combined = [...presetSizes, ...custom];
+    
+    setAllSizesOrder(prev => {
+      // Filter out any sizes that are not in the new system
+      const newSystemSizes = new Set(combined);
+      const filteredPrev = prev.filter(s => newSystemSizes.has(s));
+      
+      // Find sizes in combined that are not in filteredPrev, and append them
+      const existing = new Set(filteredPrev);
+      const added = combined.filter(s => !existing.has(s));
+      
+      return [...filteredPrev, ...added];
+    });
+  }, [sizeSystem, customSizes]);
+
+  // Keep selectedSizes sorted to match the relative order of allSizesOrder
+  useEffect(() => {
+    if (selectedSizes.length <= 1) return;
+    setSelectedSizes(prev => {
+      const next = [...prev];
+      next.sort((a, b) => allSizesOrder.indexOf(a) - allSizesOrder.indexOf(b));
+      if (JSON.stringify(next) === JSON.stringify(prev)) return prev;
+      return next;
+    });
+  }, [allSizesOrder]);
 
   const handleDragStart = (index: number) => {
     setDraggedSizeIndex(index);
@@ -139,7 +174,7 @@ export default function ProductManagement() {
     e.preventDefault();
     if (draggedSizeIndex === null || draggedSizeIndex === index) return;
     
-    setSelectedSizes(prev => {
+    setAllSizesOrder(prev => {
       const nextList = [...prev];
       const draggedItem = nextList[draggedSizeIndex];
       nextList.splice(draggedSizeIndex, 1);
@@ -264,7 +299,15 @@ export default function ProductManagement() {
   const totalStock = useMemo(() => variations.reduce((a, v) => a + (Number(v.stock) || 0), 0), [variations]);
   // Overall discount display removed as pricing is now per variation
 
-  const toggleSize = (s: string) => setSelectedSizes(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+  const toggleSize = (s: string) => setSelectedSizes(prev => {
+    if (prev.includes(s)) {
+      return prev.filter(x => x !== s);
+    } else {
+      const next = [...prev, s];
+      next.sort((a, b) => allSizesOrder.indexOf(a) - allSizesOrder.indexOf(b));
+      return next;
+    }
+  });
   const toggleColor = (c: string) => setSelectedColors(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
   const toggleMeasurement = (m: string) => setEnabledMeasurements(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
   const updateVariation = (size: string, color: string, field: keyof Variation, value: string | number) =>
@@ -379,6 +422,9 @@ export default function ProductManagement() {
               [system]: loadedCustomSizes
             }));
           }
+          
+          const remainingPresets = presetSizes.filter(s => !sizes.includes(s));
+          setAllSizesOrder([...sizes, ...remainingPresets]);
           
           setSelectedSizes(sizes);
           setSelectedColors(colors);
@@ -873,16 +919,43 @@ export default function ProductManagement() {
 
               <div className="space-y-4 pt-2">
                 <div className="flex flex-wrap gap-2">
-                  {[...(SIZE_SYSTEMS[sizeSystem]?.sizes || []), ...(customSizes[sizeSystem] || [])].map(size => (
+                  {allSizesOrder.map((size, idx) => (
                     <button 
                       key={size} 
                       type="button" 
-                      onClick={() => toggleSize(size)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                      draggable={dragModeSizeIndex === idx}
+                      onDoubleClick={() => {
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                        setDragModeSizeIndex(idx);
+                      }}
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragEnd={() => {
+                        handleDragEnd();
+                        setDragModeSizeIndex(null);
+                      }}
+                      onClick={() => {
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                          return;
+                        }
+                        clickTimeoutRef.current = setTimeout(() => {
+                          toggleSize(size);
+                          clickTimeoutRef.current = null;
+                        }, 250);
+                      }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border select-none ${
                         selectedSizes.includes(size) 
                           ? "bg-[#1B3022] text-white border-[#1B3022]" 
                           : "bg-brand/5 text-brand/50 border-transparent hover:border-brand/20"
+                      } ${draggedSizeIndex === idx ? "opacity-40 scale-95 border-brand-accent" : ""} ${
+                        dragModeSizeIndex === idx ? "ring-2 ring-brand-accent border-brand-accent cursor-grabbing animate-pulse" : "cursor-pointer"
                       }`}
+                      title={dragModeSizeIndex === idx ? "Dragging size..." : "Double-click to drag/reorder"}
                     >
                       {size}
                     </button>
@@ -912,41 +985,6 @@ export default function ProductManagement() {
                     <Plus size={12} className="text-[#C5A059]" />
                   </button>
                 </div>
-
-                {/* Draggable Reorder Section */}
-                {selectedSizes.length > 1 && (
-                  <div className="bg-[#1B3022]/5 p-4 rounded-2xl border border-[#1B3022]/10 space-y-3 mt-4">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-black text-brand/60 uppercase tracking-widest">
-                        Drag sizes to arrange display order:
-                      </label>
-                      <span className="text-[9px] font-bold text-brand/40 uppercase tracking-widest">
-                        Grab & Drag Left/Right
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2.5">
-                      {selectedSizes.map((size, idx) => (
-                        <div
-                          key={size}
-                          draggable
-                          onDragStart={() => handleDragStart(idx)}
-                          onDragOver={(e) => handleDragOver(e, idx)}
-                          onDragEnd={handleDragEnd}
-                          className={`px-4 py-2.5 bg-white border border-brand/15 rounded-xl text-xs font-black text-brand shadow-sm flex items-center gap-2 cursor-grab active:cursor-grabbing transition-all select-none hover:border-brand/40 ${
-                            draggedSizeIndex === idx ? "opacity-40 scale-95 border-brand-accent" : ""
-                          }`}
-                        >
-                          <div className="flex flex-col gap-0.5 text-brand/30">
-                            <span className="w-2.5 h-0.5 bg-current rounded-full" />
-                            <span className="w-2.5 h-0.5 bg-current rounded-full" />
-                            <span className="w-2.5 h-0.5 bg-current rounded-full" />
-                          </div>
-                          <span>{size}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
