@@ -133,8 +133,7 @@ export default function ProductManagement() {
   // States and Refs for inline size button reordering
   const [allSizesOrder, setAllSizesOrder] = useState<string[]>([]);
   const [draggedSizeIndex, setDraggedSizeIndex] = useState<number | null>(null);
-  const [dragModeSizeIndex, setDragModeSizeIndex] = useState<number | null>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isDraggingRef = useRef(false);
 
   // Maintain allSizesOrder in sync with presets + customSizes of selected sizeSystem
   useEffect(() => {
@@ -167,6 +166,7 @@ export default function ProductManagement() {
   }, [allSizesOrder]);
 
   const handleDragStart = (index: number) => {
+    isDraggingRef.current = true;
     setDraggedSizeIndex(index);
   };
 
@@ -186,6 +186,9 @@ export default function ProductManagement() {
 
   const handleDragEnd = () => {
     setDraggedSizeIndex(null);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
   };
 
   const handleAddCustomSize = () => {
@@ -923,39 +926,20 @@ export default function ProductManagement() {
                     <button 
                       key={size} 
                       type="button" 
-                      draggable={dragModeSizeIndex === idx}
-                      onDoubleClick={() => {
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                        setDragModeSizeIndex(idx);
-                      }}
+                      draggable
                       onDragStart={() => handleDragStart(idx)}
                       onDragOver={(e) => handleDragOver(e, idx)}
-                      onDragEnd={() => {
-                        handleDragEnd();
-                        setDragModeSizeIndex(null);
-                      }}
+                      onDragEnd={handleDragEnd}
                       onClick={() => {
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                          return;
-                        }
-                        clickTimeoutRef.current = setTimeout(() => {
-                          toggleSize(size);
-                          clickTimeoutRef.current = null;
-                        }, 250);
+                        if (isDraggingRef.current) return;
+                        toggleSize(size);
                       }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border select-none ${
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border select-none cursor-grab active:cursor-grabbing ${
                         selectedSizes.includes(size) 
                           ? "bg-[#1B3022] text-white border-[#1B3022]" 
                           : "bg-brand/5 text-brand/50 border-transparent hover:border-brand/20"
-                      } ${draggedSizeIndex === idx ? "opacity-40 scale-95 border-brand-accent" : ""} ${
-                        dragModeSizeIndex === idx ? "ring-2 ring-brand-accent border-brand-accent cursor-grabbing animate-pulse" : "cursor-pointer"
-                      }`}
-                      title={dragModeSizeIndex === idx ? "Dragging size..." : "Double-click to drag/reorder"}
+                      } ${draggedSizeIndex === idx ? "opacity-40 scale-95 border-brand-accent" : ""}`}
+                      title="Drag to rearrange size order"
                     >
                       {size}
                     </button>
