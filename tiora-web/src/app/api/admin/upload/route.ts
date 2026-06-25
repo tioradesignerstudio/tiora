@@ -1,0 +1,82 @@
+import { verifyAdminRequest } from "@/utils/auth";
+import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
+import crypto from "crypto";
+
+async function isAdmin(request?: Request) {
+  return !!(await verifyAdminRequest(request));
+}
+
+export async function POST(request: Request) {
+  if (!await isAdmin(request)) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+
+    if (!file) {
+      return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (cloudName && apiKey && apiSecret) {
+      // Upload to Cloudinary
+      const timestamp = Math.round(new Date().getTime() / 1000);
+      const paramsToSign = `timestamp=${timestamp}`;
+      const signature = crypto
+        .createHash("sha1")
+        .update(paramsToSign + apiSecret)
+        .digest("hex");
+
+      const uploadFormData = new FormData();
+      const fileBlob = new Blob([buffer], { type: file.type });
+      uploadFormData.append("file", fileBlob, file.name);
+      uploadFormData.append("api_key", apiKey);
+      uploadFormData.append("timestamp", timestamp.toString());
+      uploadFormData.append("signature", signature);
+
+      const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+      const response = await fetch(cloudinaryUrl, {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.error?.message || "Cloudinary upload failed");
+      }
+
+      const secureUrl = responseData.secure_url;
+      const optimizedUrl = secureUrl.replace("/upload/", "/upload/f_auto,q_auto/");
+
+      return NextResponse.json({ success: true, url: optimizedUrl });
+    } else {
+      // Ensure uploads folder exists in public directory
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await fs.mkdir(uploadDir, { recursive: true });
+
+      // Generate unique name
+      const timestamp = Date.now();
+      const extension = path.extname(file.name) || ".png";
+      const filename = `banner_${timestamp}${extension}`;
+      const filePath = path.join(uploadDir, filename);
+
+      await fs.writeFile(filePath, buffer);
+
+      const relativeUrl = `/uploads/${filename}`;
+      return NextResponse.json({ success: true, url: relativeUrl });
+    }
+  } catch (error: any) {
+    console.error("Upload Error:", error);
+    return NextResponse.json({ success: false, error: error.message || "Failed to upload file" }, { status: 500 });
+  }
+}
+
