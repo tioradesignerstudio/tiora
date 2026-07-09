@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { ShoppingBag, Loader2, Package, CheckCircle2, Clock, Ruler, XCircle, AlertTriangle, Image as ImageIcon, MapPin, Check, X, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface OrderItem {
   id: number;
@@ -37,12 +38,16 @@ const MILESTONES = [
   "delivered"
 ];
 
-export default function MyOrdersPage() {
+function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [confirmingCancelId, setConfirmingCancelId] = useState<number | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const highlightId = searchParams.get("id");
 
   useEffect(() => {
     fetchOrders();
@@ -98,30 +103,71 @@ export default function MyOrdersPage() {
     );
   }
 
+  // Filter if highlightId is present
+  const displayedOrders = highlightId
+    ? orders.filter(o => o.id.toString() === highlightId)
+    : orders;
+
+  const isSuccessView = highlightId && displayedOrders.length > 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24">
+      {isSuccessView && (
+        <div className="mb-10 text-center bg-[#F9F6EE] border border-[#C5A059]/20 rounded-[2.5rem] p-10 md:p-14 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-16 h-16 bg-[#C5A059]/10 text-[#C5A059] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <CheckCircle2 size={32} />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-playfair font-bold text-brand mb-3">Order Placed Successfully! 🎉</h1>
+          <p className="text-brand/60 text-sm max-w-md mx-auto mb-8">
+            Thank you for shopping with Tiora! Your order has been successfully placed. We've started processing your bespoke designs.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <button
+              onClick={() => router.push("/profile/orders")}
+              className="bg-brand text-white px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg transition-all"
+            >
+              View All Orders
+            </button>
+            <Link
+              href="/"
+              className="bg-white border border-brand/10 text-brand px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-brand/5 shadow-sm transition-all"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-playfair font-bold text-brand mb-2">My Orders</h1>
-          <p className="text-brand/40 text-xs font-bold uppercase tracking-widest">Track your bespoke purchases</p>
+          <h1 className="text-4xl font-playfair font-bold text-brand mb-2">
+            {isSuccessView ? "Order Details" : "My Orders"}
+          </h1>
+          <p className="text-brand/40 text-xs font-bold uppercase tracking-widest">
+            {isSuccessView ? `Details for Order #TI-${highlightId}` : "Track your bespoke purchases"}
+          </p>
         </div>
         <Link href="/" className="p-3 rounded-full bg-brand/5 text-brand hover:bg-brand/10 transition-all border border-brand/5">
           <ShoppingBag size={20} />
         </Link>
       </div>
 
-      {orders.length === 0 ? (
+      {displayedOrders.length === 0 ? (
         <div className="bg-white rounded-[2.5rem] p-20 shadow-sm border border-brand/5 text-center">
           <div className="w-20 h-20 bg-brand/5 rounded-full flex items-center justify-center mx-auto mb-6">
             <Package size={40} className="text-brand/20" />
           </div>
-          <h3 className="text-xl font-bold text-brand mb-2">No orders yet</h3>
-          <p className="text-brand/60 text-sm mb-10 max-w-xs mx-auto">Your customized collection will appear here once you place your first order.</p>
+          <h3 className="text-xl font-bold text-brand mb-2">
+            {highlightId ? "Order not found" : "No orders yet"}
+          </h3>
+          <p className="text-brand/60 text-sm mb-10 max-w-xs mx-auto">
+            {highlightId ? "We couldn't find details for this specific order." : "Your customized collection will appear here once you place your first order."}
+          </p>
           <Link href="/" className="inline-block bg-brand text-white px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg">Start Shopping</Link>
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => (
+          {displayedOrders.map((order) => (
             <div key={order.id} className="bg-white rounded-[2rem] border border-brand/5 shadow-lg overflow-hidden hover:shadow-xl transition-all group">
               <div className="p-4 md:p-6 bg-[#333333] flex flex-col md:flex-row md:items-center justify-between border-b border-brand/5 gap-4 text-white">
                 <div className="flex items-center space-x-4">
@@ -396,5 +442,18 @@ export default function MyOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MyOrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin mb-4" />
+        <p className="text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Loading your wardrobe...</p>
+      </div>
+    }>
+      <OrdersContent />
+    </Suspense>
   );
 }

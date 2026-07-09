@@ -201,8 +201,10 @@ export default function CartPage() {
       
       const data = await res.json();
       if (data.success) {
-        clearCart();
-        router.push("/profile/orders");
+        router.push(`/profile/orders?id=${data.orderId}`);
+        setTimeout(() => {
+          clearCart();
+        }, 800);
       } else {
         alert("Checkout failed: " + data.error);
         setPaymentStep("details");
