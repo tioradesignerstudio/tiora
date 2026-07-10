@@ -60,6 +60,7 @@ interface Product {
   isCustomizable: boolean | number | null;
   enabledMeasurements: string | null;
   tags: string | null;
+  specifications?: string | null;
 }
 
 const LABEL = "block text-[10px] font-black text-brand/40 uppercase tracking-[0.2em] mb-3";
@@ -93,6 +94,7 @@ export default function ProductManagement() {
   const [customMeasurements, setCustomMeasurements] = useState<string[]>([]);
   const [newMeasurementInput, setNewMeasurementInput] = useState("");
   const [pendingColor, setPendingColor] = useState("#C5A059");
+  const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
   // Images per color
   const [colorImageInputs, setColorImageInputs] = useState<Record<string, string>>({});
@@ -390,6 +392,7 @@ export default function ProductManagement() {
     setEnabledMeasurements([]);
     setCustomMeasurements([]);
     setNewMeasurementInput("");
+    setSpecifications([]);
   };
 
   const handleEdit = async (id: number) => {
@@ -485,6 +488,23 @@ export default function ProductManagement() {
           setEnabledMeasurements([]);
           setCustomMeasurements([]);
         }
+
+        // Handle specifications
+        if (p.specifications) {
+          try {
+            const specs = JSON.parse(p.specifications);
+            if (typeof specs === "object" && specs !== null) {
+              const list = Object.entries(specs).map(([k, v]) => ({ key: k, value: String(v) }));
+              setSpecifications(list);
+            } else {
+              setSpecifications([]);
+            }
+          } catch {
+            setSpecifications([]);
+          }
+        } else {
+          setSpecifications([]);
+        }
         
         // Scroll to form
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -534,11 +554,21 @@ export default function ProductManagement() {
     setIsSubmitting(true);
     try {
       const method = editingId ? "PATCH" : "POST";
+      
+      // Convert specifications list back to key-value object
+      const specsObj: Record<string, string> = {};
+      specifications.forEach(item => {
+        if (item.key.trim() && item.value.trim()) {
+          specsObj[item.key.trim()] = item.value.trim();
+        }
+      });
+
       const payload = { 
         id: editingId, name, description, images: imagesToSave, variations, 
         avgRating, numReviews, category, filterCategory, gender, colors: selectedColors, tags, isFeatured,
         isCustomizable,
-        enabledMeasurements: JSON.stringify(enabledMeasurements)
+        enabledMeasurements: JSON.stringify(enabledMeasurements),
+        specifications: Object.keys(specsObj).length > 0 ? specsObj : null
       };
       
       const res = await fetch("/api/admin/products", {
@@ -918,6 +948,76 @@ export default function ProductManagement() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* ── Product Specifications ── */}
+            <div className="bg-brand/5 p-6 rounded-[2.5rem] border border-brand/5 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-[11px] font-black text-brand uppercase tracking-widest">Product Specifications</h4>
+                  <p className="text-[9px] text-brand/40 font-bold mt-1 uppercase tracking-widest">Add key-value details (e.g. Fabric: Silk, Style: Slim-fit)</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSpecifications(prev => [...prev, { key: "", value: "" }])}
+                  className="px-4 py-2 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-brand-hover shadow-md flex items-center gap-1.5 transition-all"
+                >
+                  <Plus size={12} /> Add Row
+                </button>
+              </div>
+
+              {specifications.length > 0 ? (
+                <div className="space-y-4">
+                  {specifications.map((spec, index) => (
+                    <div key={index} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl border border-brand/5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="flex-1 grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[8px] font-black text-brand/40 uppercase tracking-widest mb-1.5 ml-1">Attribute Name</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. FABRIC"
+                            value={spec.key}
+                            onChange={(e) => {
+                              const list = [...specifications];
+                              list[index].key = e.target.value;
+                              setSpecifications(list);
+                            }}
+                            className="w-full bg-white border border-brand/10 rounded-xl px-4 py-2.5 text-xs font-bold text-brand outline-none focus:border-[#C5A059] uppercase transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-black text-brand/40 uppercase tracking-widest mb-1.5 ml-1">Value</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Satin-polyester blend"
+                            value={spec.value}
+                            onChange={(e) => {
+                              const list = [...specifications];
+                              list[index].value = e.target.value;
+                              setSpecifications(list);
+                            }}
+                            className="w-full bg-white border border-brand/10 rounded-xl px-4 py-2.5 text-xs font-bold text-brand outline-none focus:border-[#C5A059] transition-all"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSpecifications(prev => prev.filter((_, i) => i !== index))}
+                        className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 hover:text-red-700 transition-colors mt-5 flex-shrink-0"
+                        title="Remove attribute"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-brand/30 bg-white/30 rounded-3xl border border-dashed border-brand/10">
+                  <p className="text-[10px] font-bold uppercase tracking-widest">No specifications added yet</p>
+                </div>
+              )}
             </div>
 
             {/* ── Section 3: Inventory Overview ── */}

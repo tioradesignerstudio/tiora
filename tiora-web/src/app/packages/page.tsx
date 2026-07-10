@@ -10,6 +10,7 @@ interface PackageCard {
   isFeatured?: boolean;
   upgradeBenefit?: string; // Royal Couture special add-on
   whatsappMsg: string;
+  bgImage: string;
 }
 
 interface EventCategory {
@@ -33,6 +34,142 @@ const getIcon = (iconName: string, themeColor: string) => {
   const IconComponent = IconMap[iconName] || Sparkles;
   return <IconComponent className="w-5 h-5" style={{ color: themeColor }} />;
 };
+
+interface PackageCardProps {
+  pkg: PackageCard;
+  event: EventCategory;
+  isRoyal: boolean;
+}
+
+function PackageCardComponent({ pkg, event, isRoyal }: PackageCardProps) {
+  // Determine plan number: 1 = Essential, 2 = Signature, 3 = Royal
+  let planNum = 1;
+  const tierLower = pkg.tierName.toLowerCase();
+  if (tierLower.includes("signature") || tierLower.includes("tier 2")) {
+    planNum = 2;
+  } else if (tierLower.includes("royal") || tierLower.includes("tier 3")) {
+    planNum = 3;
+  }
+
+  // Construct plan image path based on category bgImage path
+  // e.g. /images/bridal_styling_pkg.png -> /images/bridal_styling_pkg_1.png
+  const bgImageBase = event.bgImage.replace(/\.[^/.]+$/, "");
+  const bgImageExt = event.bgImage.match(/\.[^/.]+$/)?.[0] || ".png";
+  const planImage = `${bgImageBase}_${planNum}${bgImageExt}`;
+
+  // Start with pkg.bgImage (from DB), fallback to planImage, fallback to event.bgImage
+  const [imgSrc, setImgSrc] = useState(pkg.bgImage || event.bgImage);
+  const [loadStep, setLoadStep] = useState(0); // 0 = pkg.bgImage, 1 = planImage, 2 = event.bgImage
+
+  return (
+    <div className="relative overflow-hidden group aspect-[3/4] w-full border border-black/10 transition-all shadow-md">
+      {/* Event Background Image */}
+      <img
+        src={imgSrc}
+        alt={event.title}
+        onError={() => {
+          if (loadStep === 0) {
+            setLoadStep(1);
+            setImgSrc(planImage);
+          } else if (loadStep === 1) {
+            setLoadStep(2);
+            setImgSrc(event.bgImage);
+          }
+        }}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+      />
+
+      {/* Gradient Overlay for backdrop contrast */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10 transition-opacity duration-300 opacity-70" />
+
+      {/* Top Decorative Border */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[4px] z-30 transition-all"
+        style={{ backgroundColor: event.themeColor }}
+      />
+
+      {/* Featured / Best Value Badges */}
+      {isRoyal && (
+        <div className="absolute top-4 right-4 bg-[#C5A059] text-white text-[8px] font-black uppercase px-3 py-1.5 tracking-wider z-20">
+          Best Value
+        </div>
+      )}
+
+      {/* Initial Card Content (visible when not hovered) */}
+      <div className="absolute inset-0 p-6 flex flex-col justify-end z-10 text-white select-none transition-opacity duration-300 group-hover:opacity-0">
+        <div className="space-y-1">
+          <span 
+            className="text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border w-fit block mb-1.5 text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/10"
+          >
+            {pkg.tierName}
+          </span>
+          
+          <div className="flex justify-between items-baseline">
+            <span className="text-3xl font-playfair font-black tracking-tight text-white">
+              {pkg.price}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hover Details Overlay (covers the whole card) */}
+      <div 
+        className="absolute inset-x-0 bottom-0 top-full group-hover:top-0 z-20 transition-all duration-500 ease-in-out overflow-y-auto flex flex-col justify-between p-6 md:p-8 text-white bg-black/45 backdrop-blur-[1px]"
+      >
+        <div className="flex flex-col justify-between h-full space-y-4">
+          {/* Header */}
+          <div>
+            <span 
+              className="text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border w-fit block mb-2 text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/10"
+            >
+              {pkg.tierName}
+            </span>
+            
+            <div className="flex justify-between items-baseline">
+              <span className="text-3xl font-playfair font-black tracking-tight text-white">
+                {pkg.price}
+              </span>
+            </div>
+          </div>
+
+          {/* Features List */}
+          <div className="flex-1 flex flex-col justify-center">
+            <ul className="space-y-3">
+              {pkg.features.map((feature, fIdx) => (
+                <li key={fIdx} className="flex items-start text-sm text-white/90 leading-relaxed font-semibold">
+                  <Check size={16} className="mr-2.5 mt-0.5 shrink-0 text-[#C5A059]" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Special Upgrade Highlights */}
+            {pkg.upgradeBenefit && (
+              <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-none text-left">
+                <p className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1 text-[#C5A059]">
+                  <Crown size={12} />
+                  <span>Exclusive Royal Add-on</span>
+                </p>
+                <p className="text-xs text-white font-bold mt-1 leading-snug">{pkg.upgradeBenefit}</p>
+              </div>
+            )}
+          </div>
+
+          {/* CTA Button */}
+          <a
+            href={`https://wa.me/919063364078?text=${encodeURIComponent(pkg.whatsappMsg)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full text-white py-3.5 text-center text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-md hover:brightness-110 bg-[#C5A059] hover:bg-[#b39150]"
+          >
+            <MessageCircle size={16} className="text-white" />
+            <span>Inquire Now</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<any[]>([]);
@@ -101,7 +238,8 @@ export default function PackagesPage() {
       price: pkg.price,
       features: pkg.features,
       upgradeBenefit: pkg.upgradeBenefit || undefined,
-      whatsappMsg: pkg.whatsappMsg
+      whatsappMsg: pkg.whatsappMsg,
+      bgImage: pkg.categoryBgImage
     });
   });
 
@@ -240,107 +378,12 @@ export default function PackagesPage() {
               {event.packages.map((pkg, pkgIdx) => {
                 const isRoyal = pkg.tierName.includes("Royal");
                 return (
-                  <div
+                  <PackageCardComponent
                     key={pkgIdx}
-                    className="relative overflow-hidden group aspect-[3/4] w-full border border-black/10 transition-all shadow-md"
-                  >
-                    {/* Event Background Image */}
-                    <img
-                      src={event.bgImage}
-                      alt={event.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    />
-
-                    {/* Gradient Overlay for backdrop contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10 transition-opacity duration-300 opacity-70" />
-
-                    {/* Top Decorative Border */}
-                    <div
-                      className="absolute top-0 left-0 right-0 h-[4px] z-30 transition-all"
-                      style={{ backgroundColor: event.themeColor }}
-                    />
-
-                    {/* Featured / Best Value Badges */}
-                    {isRoyal && (
-                      <div className="absolute top-4 right-4 bg-[#C5A059] text-white text-[8px] font-black uppercase px-3 py-1.5 tracking-wider z-20">
-                        Best Value
-                      </div>
-                    )}
-
-                    {/* Initial Card Content (visible when not hovered) */}
-                    <div className="absolute inset-0 p-6 flex flex-col justify-end z-10 text-white select-none transition-opacity duration-300 group-hover:opacity-0">
-                      <div className="space-y-1">
-                        <span 
-                          className="text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border w-fit block mb-1.5 text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/10"
-                        >
-                          {pkg.tierName}
-                        </span>
-                        
-                        <div className="flex justify-between items-baseline">
-                          <span className="text-3xl font-playfair font-black tracking-tight text-white">
-                            {pkg.price}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Hover Details Overlay (covers the whole card) */}
-                    <div 
-                      className="absolute inset-x-0 bottom-0 top-full group-hover:top-0 z-20 transition-all duration-500 ease-in-out overflow-y-auto flex flex-col justify-between p-6 md:p-8 text-white bg-black/45 backdrop-blur-[1px]"
-                    >
-                      <div className="flex flex-col justify-between h-full space-y-4">
-                        {/* Header */}
-                        <div>
-                          <span 
-                            className="text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border w-fit block mb-2 text-[#C5A059] border-[#C5A059]/30 bg-[#C5A059]/10"
-                          >
-                            {pkg.tierName}
-                          </span>
-                          
-                          <div className="flex justify-between items-baseline">
-                            <span className="text-3xl font-playfair font-black tracking-tight text-white">
-                              {pkg.price}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Features List */}
-                        <div className="flex-1 flex flex-col justify-center">
-                          <ul className="space-y-3">
-                            {pkg.features.map((feature, fIdx) => (
-                              <li key={fIdx} className="flex items-start text-sm text-white/90 leading-relaxed font-semibold">
-                                <Check size={16} className="mr-2.5 mt-0.5 shrink-0 text-[#C5A059]" />
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-
-                          {/* Special Upgrade Highlights */}
-                          {pkg.upgradeBenefit && (
-                            <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded-none text-left">
-                              <p className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1 text-[#C5A059]">
-                                <Crown size={12} />
-                                <span>Exclusive Royal Add-on</span>
-                              </p>
-                              <p className="text-xs text-white font-bold mt-1 leading-snug">{pkg.upgradeBenefit}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* CTA Button */}
-                        <a
-                          href={`https://wa.me/919063364078?text=${encodeURIComponent(pkg.whatsappMsg)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full text-white py-3.5 text-center text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-md hover:brightness-110 bg-[#C5A059] hover:bg-[#b39150]"
-                        >
-                          <MessageCircle size={16} className="text-white" />
-                          <span>Inquire Now</span>
-                        </a>
-                      </div>
-                    </div>
-
-                  </div>
+                    pkg={pkg}
+                    event={event}
+                    isRoyal={isRoyal}
+                  />
                 );
               })}
             </div>

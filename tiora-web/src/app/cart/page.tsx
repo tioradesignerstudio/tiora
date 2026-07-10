@@ -153,7 +153,7 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     setIsCheckoutModalOpen(true);
-    setPaymentStep("agreement");
+    setPaymentStep("address");
     
     // Attempt to fetch saved addresses
     setFetchingAddress(true);
@@ -192,7 +192,7 @@ export default function CartPage() {
           totalAmount: total,
           couponCode: appliedCoupon?.code || null,
           discountAmount: discountAmount,
-          paymentMethod: "online_prepaid",
+          paymentMethod: "cod",
           shippingAddress: showNewAddressForm 
             ? `Name: ${address.fullName}, Street: ${address.street}, City: ${address.city}, State: ${address.state}, Pincode: ${address.pincode}, Contact: ${address.phone}`
             : savedAddresses[selectedAddressIndex || 0]
@@ -621,11 +621,11 @@ export default function CartPage() {
               <div className="animate-in slide-in-from-right-5 duration-300">
                 <div className="flex items-center space-x-4 mb-8">
                   <div className="p-3 bg-brand/5 rounded-2xl text-brand">
-                    <CreditCard size={24} />
+                    <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-brand">Secure Checkout</h3>
-                    <p className="text-[10px] text-brand/40 font-black uppercase tracking-widest">Only Online Prepaid Payments Accepted</p>
+                    <h3 className="text-xl font-bold text-brand">Confirm Order</h3>
+                    <p className="text-[10px] text-brand/40 font-black uppercase tracking-widest">Cash on Delivery (COD) Option</p>
                   </div>
                 </div>
 
@@ -637,23 +637,17 @@ export default function CartPage() {
                     </div>
                     <div className="flex items-center space-x-2 text-[10px] font-bold text-green-600 bg-green-50 px-3 py-2 rounded-xl border border-green-100">
                       <ShieldCheck size={14} />
-                      <span>End-to-End Encrypted Gateway</span>
+                      <span>Cash on Delivery (COD) Order</span>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black text-brand uppercase tracking-[0.2em] border-b border-brand/5 pb-2">Select Payment Method</p>
-                    <div className="grid grid-cols-1 gap-3">
-                      {[
-                        { label: "UPI / PhonePe / GPay", active: true },
-                        { label: "Credit / Debit Card", active: false },
-                        { label: "Net Banking", active: false },
-                      ].map((m) => (
-                        <div key={m.label} className={`p-4 rounded-xl border flex items-center justify-between ${m.active ? 'border-brand-accent bg-brand-accent/5' : 'border-brand/5 opacity-50'}`}>
-                          <span className="text-xs font-bold text-brand">{m.label}</span>
-                          {m.active && <div className="w-4 h-4 rounded-full bg-brand-accent flex items-center justify-center"><CheckCircle2 size={10} className="text-white" /></div>}
-                        </div>
-                      ))}
+                    <p className="text-[10px] font-black text-brand uppercase tracking-[0.2em] border-b border-brand/5 pb-2">Selected Payment Method</p>
+                    <div className="p-4 rounded-xl border border-[#C5A059] bg-[#C5A059]/5 flex items-center justify-between">
+                      <span className="text-xs font-bold text-brand">Cash on Delivery (COD)</span>
+                      <div className="w-4 h-4 rounded-full bg-[#C5A059] flex items-center justify-center">
+                        <CheckCircle2 size={10} className="text-white" />
+                      </div>
                     </div>
                   </div>
 
@@ -668,7 +662,7 @@ export default function CartPage() {
                       onClick={processDummyPayment}
                       className="flex-[2] py-4 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-brand-hover shadow-lg transition-all active:scale-95"
                     >
-                      Pay Now (Dummy)
+                      Place Order (COD)
                     </button>
                   </div>
                 </div>
@@ -684,8 +678,8 @@ export default function CartPage() {
                     <ShieldCheck size={32} className="text-brand-accent animate-pulse" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-playfair font-bold text-brand mb-2">Processing Payment</h3>
-                <p className="text-[10px] text-brand/40 font-black uppercase tracking-widest">Verifying with your bank...</p>
+                <h3 className="text-2xl font-playfair font-bold text-brand mb-2">Placing Order</h3>
+                <p className="text-[10px] text-brand/40 font-black uppercase tracking-widest">Securing your custom fit order...</p>
               </div>
             )}
 

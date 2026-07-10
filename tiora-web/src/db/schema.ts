@@ -36,6 +36,7 @@ export const products = sqliteTable("products", {
   isFeatured: integer("is_featured", { mode: "boolean" }).default(false),
   isCustomizable: integer("is_customizable", { mode: "boolean" }).default(false),
   enabledMeasurements: text("enabled_measurements"), // JSON string array
+  specifications: text("specifications"), // JSON string of key-value pairs
   createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
 });
 

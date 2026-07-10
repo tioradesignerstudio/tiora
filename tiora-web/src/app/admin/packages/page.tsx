@@ -43,6 +43,35 @@ export default function AdminPackagesPage() {
   const [upgradeBenefit, setUpgradeBenefit] = useState("");
   const [whatsappMsg, setWhatsappMsg] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCategoryBgImage(data.url);
+        toast.success("Image uploaded successfully!");
+      } else {
+        toast.error(data.error || "Failed to upload image.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred during file upload.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Delete modal confirmation
   const [packageToDelete, setPackageToDelete] = useState<Package | null>(null);
@@ -588,16 +617,39 @@ export default function AdminPackagesPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase tracking-wider text-neutral-400">Background Image Path / URL *</label>
-                      <input
-                        type="text"
-                        value={categoryBgImage}
-                        onChange={(e) => setCategoryBgImage(e.target.value)}
-                        placeholder="/images/bridal_styling_pkg.png"
-                        className="w-full bg-white text-neutral-800 p-3 rounded-none border border-black/10 text-xs font-bold focus:outline-none focus:border-[#C5A059]"
-                        required
-                      />
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase tracking-wider text-neutral-400">Background Image *</label>
+                      <div className="flex flex-col gap-2">
+                        {categoryBgImage && (
+                          <div className="relative w-32 aspect-[4/3] border border-black/10 overflow-hidden">
+                            <img src={categoryBgImage} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={categoryBgImage}
+                            onChange={(e) => setCategoryBgImage(e.target.value)}
+                            placeholder="/images/bridal_styling_pkg.png"
+                            className="flex-1 bg-white text-neutral-800 p-3 rounded-none border border-black/10 text-xs font-bold focus:outline-none focus:border-[#C5A059]"
+                            required
+                          />
+                          <label className="bg-brand text-white px-4 py-3 text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-brand-hover flex items-center justify-center min-w-32 active:scale-95 transition-all text-center select-none shadow-md">
+                            {isUploading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Upload File"
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              disabled={isUploading}
+                            />
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

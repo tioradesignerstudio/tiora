@@ -33,6 +33,7 @@ interface Product {
   enabledMeasurements: string | null; // JSON string array
   gender: string | null;
   variations: Variation[];
+  specifications?: string | null;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -151,6 +152,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       setMainImage(colorImages[0]);
     }
   }, [colorImages]);
+
+  const specificationsList = useMemo(() => {
+    if (!product || !product.specifications) return [];
+    try {
+      const parsed = JSON.parse(product.specifications);
+      if (typeof parsed === "object" && parsed !== null) {
+        return Object.entries(parsed) as [string, string][];
+      }
+    } catch (e) {
+      console.error("Failed to parse specifications", e);
+    }
+    return [];
+  }, [product?.specifications]);
 
   if (loading) {
     return (
@@ -487,6 +501,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <span>{isWishlisted ? "Wishlisted" : "Add to Wishlist"}</span>
               </button>
             </div>
+
+            {/* Product Specifications */}
+            {specificationsList && specificationsList.length > 0 && (
+              <div className="mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h4 className="text-xl font-playfair font-bold text-brand mb-4">Product Specifications</h4>
+                <div className="bg-[#F9F6EE] rounded-[2rem] p-6 border border-[#C5A059]/10 shadow-sm">
+                  <div className="text-[10px] font-black text-brand/40 uppercase tracking-[0.2em] mb-4">Details</div>
+                  <div className="space-y-1">
+                    {specificationsList.map(([key, val]) => (
+                      <div key={key} className="grid grid-cols-3 gap-4 py-3.5 border-b border-brand/5 last:border-b-0 items-start">
+                        <span className="text-[10px] font-black text-brand/40 uppercase tracking-widest">{key}</span>
+                        <span className="col-span-2 text-xs font-bold text-brand whitespace-pre-wrap">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

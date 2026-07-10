@@ -182,12 +182,17 @@ export default function CategoryFilterSection({
   // 2. Classify product types dynamically
   const productsWithTypes = useMemo(() => {
     return allProducts.map((p) => {
-      let type = p.filterCategory || "Other";
-      if (!p.filterCategory) {
+      let types: string[] = [];
+      if (p.filterCategory) {
+        types = p.filterCategory.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+
+      if (types.length === 0) {
         const name = (p.name || "").toLowerCase();
         const category = (p.category || "").toLowerCase();
         const tags = (p.tags || "").toLowerCase();
 
+        let type = "Other";
         if (adminFilterTypes && adminFilterTypes.length > 0) {
           // Sort types by length descending to match most specific first
           const sortedAdminTypes = [...adminFilterTypes].sort((a, b) => b.length - a.length);
@@ -196,21 +201,24 @@ export default function CategoryFilterSection({
         } else {
           type = classifyTypeFallback(name, category);
         }
+        types = [type];
       }
 
-      return { ...p, classifiedType: type };
+      return { ...p, classifiedTypes: types };
     });
   }, [allProducts, adminFilterTypes]);
 
   // 3. Extract unique types and colors dynamically
   const availableTypes = useMemo(() => {
     if (adminFilterTypes && adminFilterTypes.length > 0) {
-      const hasOther = productsWithTypes.some((p) => p.classifiedType === "Other");
+      const hasOther = productsWithTypes.some((p) => p.classifiedTypes.includes("Other"));
       return hasOther ? [...adminFilterTypes, "Other"] : adminFilterTypes;
     }
     const typesSet = new Set<string>();
     productsWithTypes.forEach((p) => {
-      if (p.classifiedType) typesSet.add(p.classifiedType);
+      p.classifiedTypes.forEach((type) => {
+        if (type) typesSet.add(type);
+      });
     });
     return Array.from(typesSet).sort();
   }, [productsWithTypes, adminFilterTypes]);
@@ -301,8 +309,9 @@ export default function CategoryFilterSection({
   const typeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     productsWithTypes.forEach((p) => {
-      const type = p.classifiedType;
-      counts[type] = (counts[type] || 0) + 1;
+      p.classifiedTypes.forEach((type) => {
+        counts[type] = (counts[type] || 0) + 1;
+      });
     });
     return counts;
   }, [productsWithTypes]);
@@ -351,7 +360,7 @@ export default function CategoryFilterSection({
 
     // Filter by selected types (OR logic: show products matching any selected type)
     if (selectedTypes.length > 0) {
-      list = list.filter((p) => selectedTypes.includes(p.classifiedType));
+      list = list.filter((p) => p.classifiedTypes.some((type) => selectedTypes.includes(type)));
     }
 
     // Filter by selected colors (OR logic: show products matching any selected color)

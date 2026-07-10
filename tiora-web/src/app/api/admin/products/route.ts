@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     const { 
       name, description, salePrice, images, variations,
       avgRating, numReviews, category, filterCategory, gender, colors, tags, isFeatured, 
-      isCustomizable, enabledMeasurements
+      isCustomizable, enabledMeasurements, specifications
     } = body;
 
     // Validation
@@ -190,6 +190,7 @@ export async function POST(request: Request) {
         isFeatured: !!isFeatured,
         isCustomizable: !!isCustomizable,
         enabledMeasurements: enabledMeasurements || null,
+        specifications: specifications ? JSON.stringify(specifications) : null,
       }).returning();
 
       if (!productResult || productResult.length === 0) {
@@ -238,7 +239,7 @@ export async function PATCH(request: Request) {
     const { 
       id, name, description, salePrice, images, variations,
       avgRating, numReviews, category, filterCategory, gender, colors, tags, isFeatured, 
-      isCustomizable, enabledMeasurements
+      isCustomizable, enabledMeasurements, specifications
     } = body;
 
     if (!id) return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
@@ -269,6 +270,7 @@ export async function PATCH(request: Request) {
     if (isFeatured !== undefined) updateData.isFeatured = !!isFeatured;
     if (isCustomizable !== undefined) updateData.isCustomizable = !!isCustomizable;
     if (enabledMeasurements !== undefined) updateData.enabledMeasurements = enabledMeasurements;
+    if (specifications !== undefined) updateData.specifications = specifications ? JSON.stringify(specifications) : null;
 
     // 1 & 2. Update Product and Variations in a Transaction
     await db.transaction(async (tx) => {
