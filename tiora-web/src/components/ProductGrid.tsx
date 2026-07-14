@@ -78,7 +78,7 @@ export default function ProductGrid() {
         className="flex flex-col items-center text-center mb-12"
       >
         <div>
-          <h2 className="text-3xl md:text-4xl font-playfair font-light tracking-widest text-[#111111] uppercase mb-2">Featured Collections</h2>
+          <h2 className="text-3xl md:text-4xl font-playfair font-light tracking-widest text-[#111111] uppercase mb-2">Featured Products</h2>
           <p className="text-brand-accent text-xs uppercase tracking-widest font-medium">Crafted for elegance. Tailored for you.</p>
         </div>
       </motion.div>
