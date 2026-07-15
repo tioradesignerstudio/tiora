@@ -1,10 +1,8 @@
 import { cookies } from "next/headers";
-import { adminAuth } from "@/db/firebase-admin";
-import { isAdminPhone } from "@/utils/admin-helper";
+import { isAdminEmail } from "@/utils/admin-helper";
 
 export interface DecodedAdminToken {
   uid: string;
-  phone_number?: string;
   email?: string;
   [key: string]: any;
 }
@@ -12,7 +10,6 @@ export interface DecodedAdminToken {
 /**
  * Verifies if the request is authenticated as an authorized administrator.
  * Checks the Authorization header (Bearer token) or the admin_session cookie.
- * Supports local mock verification if Firebase Admin is not configured.
  */
 export async function verifyAdminRequest(request?: Request): Promise<DecodedAdminToken | null> {
   try {
@@ -36,46 +33,18 @@ export async function verifyAdminRequest(request?: Request): Promise<DecodedAdmi
       return null;
     }
 
-    // Support local developer mock mode (10-digit number)
-    const isRawPhone = /^\d{10}$/.test(token);
-    const isMock = !adminAuth || isRawPhone;
-
-    if (isMock) {
-      if (isAdminPhone(token)) {
-        return {
-          uid: "mock-admin-uid",
-          phone_number: `+91${token}`,
-        };
-      }
-      return null;
+    const email = token.trim().toLowerCase();
+    
+    // Check if the token is a valid email address and is whitelisted as admin
+    if (email.includes("@") && isAdminEmail(email)) {
+      return {
+        uid: "admin-uid",
+        email: email,
+      };
     }
 
-    // Verify ID token or Session Cookie using Firebase Admin SDK
-    let decodedToken: any;
-    try {
-      decodedToken = await adminAuth.verifySessionCookie(token);
-    } catch {
-      try {
-        decodedToken = await adminAuth.verifyIdToken(token);
-      } catch (err) {
-        console.error("[Auth Utility] Token verification failed:", err);
-        return null;
-      }
-    }
-
-    const phone = decodedToken.phone_number;
-    if (!phone) {
-      return null;
-    }
-
-    // Normalize phone to 10-digit and match designated admin whitelist
-    const normalizedPhone = phone.replace(/^\+91/, "").replace(/\D/g, "");
-    if (!isAdminPhone(normalizedPhone)) {
-      console.warn(`[Security] Unauthorized admin access attempt from phone: ${phone}`);
-      return null;
-    }
-
-    return decodedToken as DecodedAdminToken;
+    console.warn(`[Security] Unauthorized admin access attempt from: ${token}`);
+    return null;
   } catch (error) {
     console.error("[Auth Utility] verifyAdminRequest error:", error);
     return null;

@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
-import { isAdminPhone } from "@/utils/admin-helper";
+import { isAdminEmail } from "@/utils/admin-helper";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { phone } = body;
+    const { email } = body;
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json(
-        { success: false, error: "Phone number is required" },
+        { success: false, error: "Email is required" },
         { status: 400 }
       );
     }
 
-    const isAdmin = isAdminPhone(phone);
+    const isAdmin = isAdminEmail(email);
     return NextResponse.json({ success: true, isAdmin });
   } catch (error: any) {
     console.error("Check Admin API Error:", error);

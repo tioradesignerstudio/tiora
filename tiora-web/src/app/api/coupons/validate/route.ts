@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { coupons, users, orders, products } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function POST(req: Request) {
   try {
@@ -83,12 +83,12 @@ export async function POST(req: Request) {
 
     // 4. Check First Order Only
     if (coupon.isFirstOrderOnly) {
-      const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
-      if (!phoneNumber) {
+      const email = await getVerifiedEmailFromCookie("auth_session");
+      if (!email) {
         return NextResponse.json({ success: false, error: "Please log in to use this coupon" }, { status: 401 });
       }
 
-      const userRows = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).limit(1);
+      const userRows = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (!userRows.length) {
         return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
       }

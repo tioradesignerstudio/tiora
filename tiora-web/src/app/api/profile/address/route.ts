@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
-// Helper: get user by phone from cookie
+// Helper: get user by email from cookie
 async function getUserFromCookie() {
-  const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
-  if (!phoneNumber) return { user: null, phoneNumber: null };
+  const email = await getVerifiedEmailFromCookie("auth_session");
+  if (!email) return { user: null, email: null };
 
-  const rows = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).limit(1);
-  return { user: rows[0] ?? null, phoneNumber };
+  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return { user: rows[0] ?? null, email };
 }
 
 // Helper: parse stored address field → string[]
@@ -42,9 +42,9 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const { address } = await req.json();
-    const { user, phoneNumber } = await getUserFromCookie();
+    const { user, email } = await getUserFromCookie();
 
-    if (!user || !phoneNumber) {
+    if (!user || !email) {
       return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
     }
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     await db.update(users)
       .set({ address: JSON.stringify(addresses) })
-      .where(eq(users.phoneNumber, phoneNumber));
+      .where(eq(users.email, email));
 
     return NextResponse.json({ success: true, addresses });
   } catch (error) {
@@ -67,9 +67,9 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { address } = await req.json();
-    const { user, phoneNumber } = await getUserFromCookie();
+    const { user, email } = await getUserFromCookie();
 
-    if (!user || !phoneNumber) {
+    if (!user || !email) {
       return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
     }
 
@@ -77,7 +77,7 @@ export async function DELETE(req: Request) {
 
     await db.update(users)
       .set({ address: addresses.length > 0 ? JSON.stringify(addresses) : null })
-      .where(eq(users.phoneNumber, phoneNumber));
+      .where(eq(users.email, email));
 
     return NextResponse.json({ success: true, addresses });
   } catch (error) {

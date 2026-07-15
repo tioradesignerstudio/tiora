@@ -7,7 +7,7 @@ import { User, Package, Settings, LogOut, ChevronDown, MapPin } from "lucide-rea
 interface ProfileDropdownProps {
   user: {
     fullName: string | null;
-    phoneNumber: string;
+    email: string;
   };
   onLogout: () => void;
 }
@@ -23,8 +23,8 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   // Close when navigating
@@ -40,8 +40,8 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
         onClick={() => setIsOpen(!isOpen)}
         className="flex flex-col items-center justify-center text-brand hover:text-brand-accent transition-colors p-1 cursor-pointer group"
       >
-        <User className="h-5 w-5" />
-        <span className="text-[10px] font-bold mt-1">Profile</span>
+        <User className="h-5 w-5 pointer-events-none" />
+        <span className="text-[10px] font-bold mt-1 pointer-events-none">Profile</span>
       </button>
 
       {/* Dropdown Menu */}
@@ -49,7 +49,7 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
         <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-brand/5 overflow-hidden z-[60] animate-in slide-in-from-top-2 duration-200">
           <div className="p-5 bg-brand/5 border-b border-brand/5">
             <div className="text-sm font-bold text-brand truncate">{user.fullName || "User"}</div>
-            <div className="text-[10px] text-brand/40 tracking-widest uppercase font-medium mt-1">{user.phoneNumber}</div>
+            <div className="text-[10px] text-brand/40 tracking-widest font-medium mt-1">{user.email}</div>
           </div>
           
           <div className="p-2">

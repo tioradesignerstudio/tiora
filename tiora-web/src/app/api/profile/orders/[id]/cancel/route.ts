@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
+  const email = await getVerifiedEmailFromCookie("auth_session");
 
-  if (!phoneNumber) {
+  if (!email) {
     return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
   }
 
@@ -20,7 +20,7 @@ export async function PATCH(
     const userRows = await db
       .select()
       .from(users)
-      .where(eq(users.phoneNumber, phoneNumber))
+      .where(eq(users.email, email))
       .limit(1);
 
     if (!userRows.length) {
@@ -47,8 +47,8 @@ export async function PATCH(
 
     const order = orderRows[0];
 
-    // Only allow cancellation if order is still pending
-    if (order.status !== "pending") {
+    // Only allow cancellation if order is pending or processing
+    if (!order.status || !["pending", "processing"].includes(order.status)) {
       return NextResponse.json({
         success: false,
         error: `Cannot cancel an order with status '${order.status}'.`,

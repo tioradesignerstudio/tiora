@@ -7,7 +7,7 @@ async function seed() {
   try {
     // Admin User
     await db.insert(users).values({
-      phoneNumber: "9876543210",
+      email: "tioradesignerstudio@gmail.com",
       fullName: "System Admin",
       role: "admin",
     }).onConflictDoNothing();

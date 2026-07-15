@@ -41,6 +41,21 @@ interface ProductStats {
   image: string | null;
   variations?: VariationStats[];
 }
+function getProductStockStatus(product: ProductStats): "out-of-stock" | "low-stock" | "in-stock" {
+  if (product.variations && product.variations.length > 0) {
+    const hasOutOfStock = product.variations.some(v => v.totalRemaining === 0 || v.colors.some(c => c.remaining === 0));
+    if (hasOutOfStock) return "out-of-stock";
+
+    const hasLowStock = product.variations.some(v => v.totalRemaining < 10 || v.colors.some(c => c.remaining < 10));
+    if (hasLowStock) return "low-stock";
+
+    return "in-stock";
+  }
+
+  if (product.remaining === 0) return "out-of-stock";
+  if (product.remaining < 10) return "low-stock";
+  return "in-stock";
+}
 
 export default function InventoryPage() {
   const [data, setData] = useState<Record<string, ProductStats[]>>({});
@@ -90,12 +105,16 @@ export default function InventoryPage() {
 
     // Apply Tab Filters
     if (activeTab === "most-selling") {
-      // For Most Selling, we still show by category but products must have at least 1 sale
-      filtered = filtered.filter(p => p.sold > 0).sort((a, b) => b.sold - a.sold);
+      filtered = filtered.filter(p => {
+        if (p.variations && p.variations.length > 0) {
+          return p.variations.some(v => v.totalSold > 5 || v.colors.some(c => c.sold > 5));
+        }
+        return p.sold > 5;
+      }).sort((a, b) => b.sold - a.sold);
     } else if (activeTab === "low-stock") {
-      filtered = filtered.filter(p => p.remaining < 10 && p.remaining > 0);
+      filtered = filtered.filter(p => getProductStockStatus(p) === "low-stock");
     } else if (activeTab === "out-of-stock") {
-      filtered = filtered.filter(p => p.remaining === 0);
+      filtered = filtered.filter(p => getProductStockStatus(p) === "out-of-stock");
     }
 
     if (filtered.length > 0) {
@@ -286,18 +305,18 @@ export default function InventoryPage() {
                                 </div>
                               </div>
 
-                              {/* Low Stock Warning */}
-                              {product.remaining < 10 && product.remaining > 0 && (
-                                <div className="mt-4 py-2 px-3 bg-red-600 text-white rounded-xl flex items-center justify-center space-x-2 animate-pulse">
-                                  <AlertCircle size={12} />
-                                  <span className="text-[9px] font-black uppercase tracking-widest">Low Stock Warning</span>
-                                </div>
-                              )}
-                              
-                              {product.remaining === 0 && (
+                              {/* Stock Warning Banner */}
+                              {getProductStockStatus(product) === "out-of-stock" && (
                                 <div className="mt-4 py-2 px-3 bg-gray-900 text-white rounded-xl flex items-center justify-center space-x-2">
                                   <Box size={12} />
                                   <span className="text-[9px] font-black uppercase tracking-widest">Out of Stock</span>
+                                </div>
+                              )}
+
+                              {getProductStockStatus(product) === "low-stock" && (
+                                <div className="mt-4 py-2 px-3 bg-red-600 text-white rounded-xl flex items-center justify-center space-x-2 animate-pulse">
+                                  <AlertCircle size={12} />
+                                  <span className="text-[9px] font-black uppercase tracking-widest">Low Stock Warning</span>
                                 </div>
                               )}
 
@@ -323,7 +342,9 @@ export default function InventoryPage() {
                                           <div className="flex space-x-6 text-[9px] font-bold uppercase tracking-widest text-right">
                                             <div>
                                               <p className="text-rose-500 font-bold">Stock Left</p>
-                                              <p className="text-xs font-black text-rose-600 mt-0.5">{v.totalRemaining}</p>
+                                              <p className={`text-xs font-black mt-0.5 ${v.totalRemaining === 0 ? 'text-red-600 font-black' : 'text-rose-600'}`}>
+                                                {v.totalRemaining === 0 ? "OUT OF STOCK" : v.totalRemaining}
+                                              </p>
                                             </div>
                                             <div>
                                               <p className="text-green-500 font-bold">Sold</p>
@@ -353,7 +374,9 @@ export default function InventoryPage() {
                                               
                                               {/* Stats breakdown */}
                                               <div className="flex space-x-6 text-[10px] font-bold text-right text-brand/40">
-                                                <span className="min-w-[45px] text-rose-500/70">{c.remaining} left</span>
+                                                <span className={`min-w-[45px] ${c.remaining === 0 ? 'text-red-600 font-black' : 'text-rose-500/70'}`}>
+                                                  {c.remaining === 0 ? "OUT OF STOCK" : `${c.remaining} left`}
+                                                </span>
                                                 <span className="min-w-[45px] text-green-500/70">{c.sold} sold</span>
                                                 <span className="min-w-[55px] text-blue-500/70">{c.toBeDelivered} pending</span>
                                               </div>

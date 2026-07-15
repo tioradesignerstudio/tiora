@@ -2,21 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, User, Phone } from "lucide-react";
+import { ArrowLeft, ShieldCheck, User, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/db/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 export default function Login() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
-  const [phone, setPhone] = useState("");
+  const [step, setStep] = useState<"email" | "otp" | "profile">("email");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(0);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -26,48 +23,48 @@ export default function Login() {
     return () => clearInterval(interval);
   }, [timer, step]);
 
-  // Step 1: Handle Phone Input (Numeric only, max 10)
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setPhone(value);
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
     if (error) setError("");
   };
 
-  // Step 2: Handle OTP Input (Numeric only, max 6)
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
     setOtp(value);
     if (error) setError("");
   };
 
+  const validateEmail = (emailStr: string): boolean => {
+    return emailStr.includes("@") && emailStr.includes(".");
+  };
+
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length !== 10) return;
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
     
     setLoading(true);
     setError("");
     
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
-    
     try {
-      if (isFirebaseEnabled) {
-        // Initialize invisible ReCAPTCHA verifier
-        const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-        });
-        
-        // Request Firebase OTP sending (requires E.164 phone format)
-        const confirmation = await signInWithPhoneNumber(auth, `+91${phone}`, recaptchaVerifier);
-        setConfirmationResult(confirmation);
-      } else {
-        console.log("[DEV MODE] Firebase credentials missing. Falling back to mock OTP flow.");
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || "Failed to send code.");
       }
       
       setStep("otp");
       setTimer(60);
     } catch (err: any) {
       console.error("OTP Error:", err);
-      setError(err.message || "Failed to send OTP. Please try again.");
+      setError(err.message || "Failed to send verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,29 +77,11 @@ export default function Login() {
     setLoading(true);
     setError("");
     
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
-    
     try {
-      let idToken = null;
-
-      if (isFirebaseEnabled) {
-        if (!confirmationResult) {
-          throw new Error("Verification session expired. Please request a new OTP.");
-        }
-        const result = await confirmationResult.confirm(otp);
-        idToken = await result.user.getIdToken();
-      }
-
-      // Proactively set the session cookie client-side to prevent Playwright race conditions
-      // where page.goto('/') is called immediately after clicking Verify.
-      const cookieValue = idToken || phone;
-      document.cookie = `auth_session=${cookieValue}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
-
-      // Sync session credentials with the backend
-      const res = await fetch("/api/auth/sync", {
+      const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, idToken }),
+        body: JSON.stringify({ email, otp }),
       });
       const data = await res.json();
       
@@ -118,7 +97,7 @@ export default function Login() {
       }
     } catch (err: any) {
       console.error("Verification error:", err);
-      setError(err.message || "Invalid OTP. Please try again.");
+      setError(err.message || "Invalid verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -135,7 +114,7 @@ export default function Login() {
       const res = await fetch("/api/auth/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, fullName }),
+        body: JSON.stringify({ fullName }),
       });
       const data = await res.json();
       
@@ -155,9 +134,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-brand-light flex flex-col justify-center items-center p-4 selection:bg-brand-accent/30 font-inter">
-      {/* Hidden container for Firebase Recaptcha */}
-      <div id="recaptcha-container"></div>
-
       <div className="absolute top-8 left-8">
         <Link href="/" className="inline-flex items-center space-x-2 text-brand/60 hover:text-brand transition text-sm font-medium">
           <ArrowLeft size={16} />
@@ -174,41 +150,40 @@ export default function Login() {
             {step === "profile" ? "Welcome to Tiora" : "Sign In"}
           </h2>
           <p className="text-brand/60 text-sm leading-relaxed px-4">
-            {step === "phone" && "Enter your 10-digit mobile number to access your custom fits."}
-            {step === "otp" && `We've sent a 6-digit verification code to +91 ${phone}`}
+            {step === "email" && "Enter your email address to access your custom fits."}
+            {step === "otp" && `We've sent a 6-digit verification code to ${email}`}
             {step === "profile" && "One last step! Tell us your name to personalize your experience."}
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl text-center animate-pulse">
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl text-center">
             {error}
           </div>
         )}
 
-        {/* STEP 1: Phone Number */}
-        {step === "phone" && (
+        {/* STEP 1: Email Address */}
+        {step === "email" && (
           <form onSubmit={handleSendOTP} className="space-y-6">
             <div>
-              <label className="block text-[10px] font-black text-brand/40 uppercase mb-2 tracking-[0.2em] ml-1">Mobile Number</label>
+              <label className="block text-[10px] font-black text-brand/40 uppercase mb-2 tracking-[0.2em] ml-1">Email Address</label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center space-x-2 border-r border-brand/10 pr-3">
-                  <Phone size={14} className="text-brand-accent" />
-                  <span className="text-brand font-bold text-sm">+91</span>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pr-3">
+                  <Mail size={16} className="text-brand-accent" />
                 </div>
                 <input 
-                  type="tel" 
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="Enter 10 digits" 
-                  className="w-full bg-brand/5 border-2 border-transparent focus:border-brand-accent/30 focus:bg-white rounded-xl py-4 pl-20 pr-4 text-brand font-bold tracking-widest placeholder:text-brand/20 placeholder:tracking-normal transition-all outline-none"
+                  type="email" 
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder="name@example.com" 
+                  className="w-full bg-brand/5 border-2 border-transparent focus:border-brand-accent/30 focus:bg-white rounded-xl py-4 pl-12 pr-4 text-brand font-bold placeholder:text-brand/20 transition-all outline-none"
                   required
                 />
               </div>
             </div>
             <button 
               type="submit" 
-              disabled={loading || phone.length !== 10} 
+              disabled={loading || !email.trim()} 
               className="w-full bg-brand text-white font-bold py-4 rounded-xl shadow-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex justify-center items-center space-x-2"
             >
               {loading ? (
@@ -238,7 +213,7 @@ export default function Login() {
                 />
               </div>
               <div className="flex justify-between mt-4 px-1">
-                <button type="button" onClick={() => setStep("phone")} className="text-xs text-brand/40 hover:text-brand font-bold transition-colors">Change Number</button>
+                <button type="button" onClick={() => setStep("email")} className="text-xs text-brand/40 hover:text-brand font-bold transition-colors">Change Email</button>
                 <button 
                   type="button" 
                   onClick={handleSendOTP}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { coupons, users, orders, products } from "@/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function POST(req: Request) {
   try {
@@ -21,12 +21,12 @@ export async function POST(req: Request) {
     const productMap = new Map(dbProducts.map(p => [p.id, p]));
 
     // Get user info for first-order check
-    const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
     let hasPreviousOrders = false;
-    let isLoggedIn = !!phoneNumber;
+    let isLoggedIn = !!email;
     
-    if (isLoggedIn && phoneNumber) {
-      const userRows = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).limit(1);
+    if (isLoggedIn && email) {
+      const userRows = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (userRows.length > 0) {
         const userOrders = await db.select().from(orders).where(eq(orders.userId, userRows[0].id));
         hasPreviousOrders = userOrders.length > 0;

@@ -38,6 +38,40 @@ const MILESTONES = [
   "delivered"
 ];
 
+function getMilestoneProgress(status: string): { width: string; activeIndex: number } {
+  const normalized = status?.toLowerCase().trim();
+  
+  if (normalized === "cancelled") {
+    return { width: "0%", activeIndex: -1 };
+  }
+  
+  if (normalized === "pending" || normalized === "processing") {
+    return { width: "0%", activeIndex: -1 };
+  }
+  
+  if (normalized === "confirmed") {
+    return { width: "0%", activeIndex: 0 };
+  }
+  
+  if (normalized === "shipped") {
+    return { width: "25%", activeIndex: 1 };
+  }
+  
+  if (normalized === "on the way") {
+    return { width: "50%", activeIndex: 2 };
+  }
+  
+  if (normalized === "out for delivery") {
+    return { width: "75%", activeIndex: 3 };
+  }
+  
+  if (normalized === "delivered") {
+    return { width: "100%", activeIndex: 4 };
+  }
+  
+  return { width: "0%", activeIndex: -1 };
+}
+
 function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,14 +262,15 @@ function OrdersContent() {
                     <div 
                       className="absolute top-1/2 left-0 h-[2px] bg-[#C5A059] -translate-y-1/2 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(197,160,89,0.4)]" 
                       style={{ 
-                        width: `${(MILESTONES.indexOf(order.status) / (MILESTONES.length - 1)) * 100}%` 
+                        width: getMilestoneProgress(order.status).width 
                       }} 
                     />
 
                     {/* Milestone Dots */}
                     <div className="relative flex justify-between">
                       {MILESTONES.map((m, idx) => {
-                        const isCompleted = MILESTONES.indexOf(order.status) >= idx;
+                        const { activeIndex } = getMilestoneProgress(order.status);
+                        const isCompleted = activeIndex >= idx;
                         const isCurrent = order.status === m;
                         return (
                           <div key={m} className="flex flex-col items-center">
@@ -392,7 +427,7 @@ function OrdersContent() {
                   </div>
 
                   {/* Manage Order (Cancel) */}
-                  {["pending"].includes(order.status) && (
+                  {["pending", "processing"].includes(order.status) && (
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-widest mb-3 text-brand/40">Manage Order</p>
                       <div className="bg-brand/5 p-2 rounded-2xl border border-brand/5">

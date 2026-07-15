@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       createdAt: orders.createdAt,
       shippingAddress: orders.shippingAddress,
       customerName: users.fullName,
-      customerPhone: users.phoneNumber,
+      customerEmail: users.email,
     })
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))

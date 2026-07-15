@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { cartItems, users } from "@/db/schema";
+import { cartItems, users, products } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function POST(request: Request) {
   try {
-    const phone = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const userResult = await db.select().from(users).where(eq(users.phoneNumber, phone)).limit(1);
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const user = userResult[0];
 
     if (!user) {
@@ -48,22 +48,49 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const phone = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const userResult = await db.select().from(users).where(eq(users.phoneNumber, phone)).limit(1);
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const user = userResult[0];
 
     if (!user) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    const dbCart = await db.select().from(cartItems).where(eq(cartItems.userId, user.id));
+    // Fetch and join products to get name and image for frontend
+    const dbCart = await db.select({
+      id: cartItems.itemHash,
+      productId: cartItems.productId,
+      name: products.name,
+      price: cartItems.price,
+      images: products.images,
+      colors: products.colors,
+      quantity: cartItems.quantity,
+      size: cartItems.baseSize,
+      customizations: cartItems.customSpecifications,
+    })
+    .from(cartItems)
+    .innerJoin(products, eq(cartItems.productId, products.id))
+    .where(eq(cartItems.userId, user.id));
 
-    return NextResponse.json({ success: true, items: dbCart });
+    // Resolve the first image URL
+    const { getFirstProductImageUrl } = await import("@/utils/product");
+    const hydratedCart = dbCart.map(item => ({
+      id: item.id,
+      productId: item.productId,
+      name: item.name,
+      price: item.price,
+      image: getFirstProductImageUrl(item.images, item.colors) || "/images/placeholder.png",
+      quantity: item.quantity,
+      size: item.size,
+      customizations: item.customizations,
+    }));
+
+    return NextResponse.json({ success: true, items: hydratedCart });
   } catch (error: any) {
     console.error("Cart Fetch Error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch cart" }, { status: 500 });

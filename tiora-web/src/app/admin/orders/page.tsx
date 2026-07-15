@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ShoppingBag, Clock, CheckCircle2, Truck, Loader2, User, Phone, Ruler, ChevronDown, ChevronUp, Sparkles, Scissors, MapPin } from "lucide-react";
+import { ShoppingBag, Clock, CheckCircle2, Truck, Loader2, User, Phone, Ruler, ChevronDown, ChevronUp, Sparkles, Scissors, MapPin, Mail } from "lucide-react";
 
 interface OrderItem {
   id: number;
@@ -25,7 +25,7 @@ interface Order {
   status: string;
   createdAt: string;
   customerName: string;
-  customerPhone: string;
+  customerEmail: string;
   shippingAddress: string;
   items: OrderItem[];
 }
@@ -100,7 +100,7 @@ export default function AdminOrders() {
     const s = searchTerm.toLowerCase();
     const matchesSearch = (
       order.id.toString().includes(s) ||
-      (order.customerPhone || "").includes(s) ||
+      (order.customerEmail || "").includes(s) ||
       (order.customerName || "").toLowerCase().includes(s)
     );
     if (!matchesSearch) return false;
@@ -347,14 +347,20 @@ export default function AdminOrders() {
                         <User size={14} className="text-brand-accent" /> Customer Details
                       </h4>
                       <div className="bg-white p-5 rounded-2xl border border-brand/5 space-y-4">
+                        {(() => {
+                          const parsedShippingName = order.shippingAddress?.match(/Name:\s*([^,]+)/)?.[1]?.trim();
+                          const displayName = parsedShippingName || order.customerName || "Guest User";
+                          return (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-brand/40 uppercase">Name</span>
+                              <span className="text-xs font-black text-brand">{displayName}</span>
+                            </div>
+                          );
+                        })()}
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-brand/40 uppercase">Name</span>
-                          <span className="text-xs font-black text-brand">{order.customerName || "Guest User"}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-brand/40 uppercase">Phone</span>
+                          <span className="text-[10px] font-bold text-brand/40 uppercase">Email</span>
                           <span className="text-xs font-black text-brand flex items-center gap-1">
-                            <Phone size={10} /> {order.customerPhone}
+                            <Mail size={10} /> {order.customerEmail}
                           </span>
                         </div>
                       </div>

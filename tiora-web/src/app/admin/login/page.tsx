@@ -1,109 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Lock, Phone, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/db/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { Lock, ShieldCheck, Loader2, Mail, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLogin() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-    setPhone(value);
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
     if (error) setError("");
   };
 
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setOtp(value);
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
     if (error) setError("");
   };
 
-  const handleSendOTP = async (e: React.FormEvent) => {
+  const validateEmail = (emailStr: string): boolean => {
+    return emailStr.includes("@") && emailStr.includes(".");
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length !== 10) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      // Query server-side check-admin endpoint to keep admin numbers hidden from client
-      const checkRes = await fetch("/api/auth/check-admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
-      });
-      const checkData = await checkRes.json();
-
-      if (!checkData.success || !checkData.isAdmin) {
-        setError("Unauthorized phone number. This portal is for administrators only.");
-        setLoading(false);
-        return;
-      }
-
-      const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
-
-      if (isFirebaseEnabled) {
-        // Initialize invisible ReCAPTCHA verifier
-        const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-        });
-
-        // Send OTP via Firebase (requires E.164 phone format)
-        const confirmation = await signInWithPhoneNumber(auth, `+91${phone}`, recaptchaVerifier);
-        setConfirmationResult(confirmation);
-      } else {
-        console.log("[DEV MODE] Firebase credentials missing. Falling back to admin mock OTP flow.");
-      }
-      
-      setStep("otp");
-    } catch (err: any) {
-      console.error("OTP Send Error:", err);
-      setError(err.message || "Failed to send OTP. Please try again.");
-    } finally {
-      setLoading(false);
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
     }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) return;
 
     setLoading(true);
     setError("");
 
-    const isFirebaseEnabled = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "mock";
-
     try {
-      let idToken = null;
-
-      if (isFirebaseEnabled) {
-        if (!confirmationResult) {
-          throw new Error("Verification session expired. Please request a new OTP.");
-        }
-        const result = await confirmationResult.confirm(otp);
-        idToken = await result.user.getIdToken();
-      }
-
-      // Proactively set the admin session cookie client-side to prevent Playwright race conditions
-      // where page.goto('/admin/navigation') or similar is called immediately.
-      const cookieValue = idToken || phone;
-      document.cookie = `admin_session=${cookieValue}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
-
-      // Sync administrative session cookies with the backend
-      const res = await fetch("/api/auth/sync", {
+      const res = await fetch("/api/auth/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, idToken }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
@@ -111,11 +48,11 @@ export default function AdminLogin() {
         router.push("/admin/navigation");
         router.refresh();
       } else {
-        setError(data.error || "Invalid OTP");
+        setError(data.error || "Invalid administrator credentials");
       }
     } catch (err: any) {
-      console.error("Verification failed:", err);
-      setError(err.message || "Verification failed. Please try again.");
+      console.error("Admin Login Error:", err);
+      setError(err.message || "Failed to authenticate. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -123,16 +60,13 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-brand-light flex flex-col justify-center items-center p-4 font-inter">
-      {/* Hidden container for Firebase Recaptcha */}
-      <div id="recaptcha-container"></div>
-
       <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl border-t-[12px] border-t-[#333333] relative overflow-hidden">
         {/* Subtle background decoration */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#333333]/5 rounded-full blur-3xl"></div>
 
         <div className="text-center mb-10">
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#333333] flex items-center justify-center shadow-2xl relative">
-            <Lock className="text-[#333333]" size={32} />
+            <Lock className="text-white" size={32} />
             <div className="absolute -bottom-2 -right-2 bg-[#333333] p-1.5 rounded-lg shadow-lg">
               <ShieldCheck size={16} className="text-white" />
             </div>
@@ -141,7 +75,7 @@ export default function AdminLogin() {
             Admin Portal
           </h2>
           <p className="text-[#333333]/60 text-sm font-medium uppercase tracking-widest">
-            {step === "phone" ? "Authorization Required" : "Security Verification"}
+            Authorization Required
           </p>
         </div>
 
@@ -151,76 +85,62 @@ export default function AdminLogin() {
           </div>
         )}
 
-        {/* STEP 1: Phone Number */}
-        {step === "phone" && (
-          <form onSubmit={handleSendOTP} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-black text-[#333333]/40 uppercase mb-2 tracking-[0.2em] ml-1">Admin Phone</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center space-x-2 border-r border-[#333333]/10 pr-3">
-                  <Phone size={14} className="text-[#333333]" />
-                  <span className="text-[#333333] font-bold text-sm">+91</span>
-                </div>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="9999999999"
-                  className="w-full bg-[#333333]/5 border-2 border-transparent focus:border-[#333333]/30 focus:bg-white rounded-xl py-4 pl-20 pr-4 text-[#333333] font-bold tracking-widest transition-all outline-none"
-                  required
-                />
+        <form onSubmit={handleLoginSubmit} className="space-y-6">
+          {/* Email Address */}
+          <div>
+            <label className="block text-[10px] font-black text-[#333333]/40 uppercase mb-2 tracking-[0.2em] ml-1">Admin Email</label>
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pr-3">
+                <Mail size={16} className="text-[#333333]" />
               </div>
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder="admin@tiorastudio.com"
+                className="w-full bg-[#333333]/5 border-2 border-transparent focus:border-[#333333]/30 focus:bg-white rounded-xl py-4 pl-12 pr-4 text-[#333333] font-bold transition-all outline-none"
+                required
+              />
             </div>
-            <button
-              type="submit"
-              disabled={loading || phone.length !== 10}
-              className="w-full bg-[#333333] text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-[#444444] disabled:opacity-50 transition-all active:scale-95 flex justify-center items-center space-x-2 group"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <span className="uppercase tracking-[0.2em] text-xs">Request Access</span>
-                </>
-              )}
-            </button>
-          </form>
-        )}
+          </div>
 
-        {/* STEP 2: OTP Verification */}
-        {step === "otp" && (
-          <form onSubmit={handleVerifyOTP} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-black text-[#333333]/40 uppercase mb-2 tracking-[0.2em] ml-1">Security Code</label>
-              <div className="relative">
-                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-[#333333]" size={18} />
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={handleOtpChange}
-                  placeholder="123456"
-                  className="w-full bg-[#333333]/5 border-2 border-transparent focus:border-[#333333]/30 focus:bg-white rounded-xl py-4 px-12 text-[#333333] font-mono font-bold text-center text-2xl tracking-[0.5em] transition-all outline-none"
-                  required
-                />
+          {/* Password */}
+          <div>
+            <label className="block text-[10px] font-black text-[#333333]/40 uppercase mb-2 tracking-[0.2em] ml-1">Password</label>
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pr-3">
+                <Lock size={16} className="text-[#333333]" />
               </div>
-              <div className="flex justify-center mt-4">
-                <button type="button" onClick={() => setStep("phone")} className="text-[10px] text-[#333333]/40 hover:text-[#333333] font-black uppercase tracking-widest transition-colors">Use different account</button>
-              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="••••••••"
+                className="w-full bg-[#333333]/5 border-2 border-transparent focus:border-[#333333]/30 focus:bg-white rounded-xl py-4 pl-12 pr-12 text-[#333333] font-bold transition-all outline-none"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#333333]/40 hover:text-[#333333] transition-colors"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6}
-              className="w-full bg-[#333333] text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-[#9E4307] disabled:opacity-50 transition-all active:scale-95 flex justify-center items-center space-x-2"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <span className="uppercase tracking-[0.2em] text-xs">Authorize Entry</span>
-              )}
-            </button>
-          </form>
-        )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !email.trim() || !password}
+            className="w-full bg-[#333333] text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-[#444444] disabled:opacity-50 transition-all active:scale-95 flex justify-center items-center space-x-2 group"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <span className="uppercase tracking-[0.2em] text-xs font-bold">Sign In</span>
+            )}
+          </button>
+        </form>
       </div>
 
       <p className="mt-10 text-center text-[10px] text-brand-dark/30 max-w-xs leading-relaxed uppercase tracking-[0.3em] font-bold">

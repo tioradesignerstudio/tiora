@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function POST(request: Request) {
   try {
-    const phone = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Update user profile in DB
     await db.update(users)
       .set({ fullName })
-      .where(eq(users.phoneNumber, phone));
+      .where(eq(users.email, email));
 
     return NextResponse.json({ success: true, message: "Profile updated successfully" });
   } catch (error: any) {

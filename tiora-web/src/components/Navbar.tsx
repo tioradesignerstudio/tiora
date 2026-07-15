@@ -28,7 +28,7 @@ export default function Navbar() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<{ fullName: string | null; phoneNumber: string } | null>(null);
+  const [user, setUser] = useState<{ fullName: string | null; email: string } | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -39,6 +39,7 @@ export default function Navbar() {
   const getTotalItems = useCartStore((state) => state.getTotalItems);
   const cartItems = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
+  const setItems = useCartStore((state) => state.setItems);
 
   // Wishlist store hooks
   const wishlistItems = useWishlistStore((state) => state.items);
@@ -52,7 +53,7 @@ export default function Navbar() {
     
     // Sync cart with backend if user is logged in
     const syncCart = async () => {
-      if (user && cartItems.length > 0) {
+      if (user) {
         try {
           await fetch("/api/cart/sync", {
             method: "POST",
@@ -91,6 +92,17 @@ export default function Navbar() {
           setUser(sessionData.user);
           // Fetch wishlist
           fetchWishlist();
+          // Fetch saved cart from database if local cart is empty
+          if (cartItems.length === 0) {
+            fetch("/api/cart/sync")
+              .then(res => res.json())
+              .then(cartData => {
+                if (cartData.success && cartData.items) {
+                  setItems(cartData.items);
+                }
+              })
+              .catch(err => console.error("Failed to load saved cart:", err));
+          }
         } else {
           setUser(null);
           // If the user is logged out, ensure the cart and wishlist are empty

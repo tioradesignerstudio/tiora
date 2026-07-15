@@ -6,7 +6,7 @@ import { Users, Search, Mail, Phone, Calendar, Loader2, ArrowLeft } from "lucide
 type Customer = {
   id: number;
   fullName: string | null;
-  phoneNumber: string;
+  email: string;
   role: string;
   createdAt: string;
 };
@@ -35,7 +35,7 @@ export default function CustomerManagement() {
 
   const filteredCustomers = customers.filter(c => 
     c.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.phoneNumber.includes(searchTerm)
+    c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -58,7 +58,7 @@ export default function CustomerManagement() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand/30 group-focus-within:text-[#C5A059] transition-colors" size={18} />
           <input 
             type="text" 
-            placeholder="Search by name or phone..."
+            placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white border border-brand/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-brand focus:outline-none focus:ring-4 focus:ring-[#C5A059]/5 transition-all shadow-sm"
@@ -71,7 +71,7 @@ export default function CustomerManagement() {
           <thead>
             <tr className="bg-brand/5 border-b border-brand/10">
               <th className="px-8 py-6 text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Customer Details</th>
-              <th className="px-8 py-6 text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Phone Number</th>
+              <th className="px-8 py-6 text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Email Address</th>
               <th className="px-8 py-6 text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Role</th>
               <th className="px-8 py-6 text-[10px] font-black text-brand/40 uppercase tracking-[0.2em]">Joined On</th>
             </tr>
@@ -92,8 +92,8 @@ export default function CustomerManagement() {
                 </td>
                 <td className="px-8 py-6">
                   <div className="flex items-center space-x-2 text-brand/60 group-hover:text-brand transition-colors">
-                    <Phone size={14} className="text-[#C5A059]" />
-                    <span className="font-bold text-sm tracking-widest">+91 {customer.phoneNumber}</span>
+                    <Mail size={14} className="text-[#C5A059]" />
+                    <span className="font-bold text-sm">{customer.email}</span>
                   </div>
                 </td>
                 <td className="px-8 py-6">

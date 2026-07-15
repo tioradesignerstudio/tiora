@@ -3,6 +3,7 @@ import { navigationMenu, pageSections, products, homepageCategories, productVari
 import { eq, inArray, asc, or } from "drizzle-orm";
 import CategoryFilterSection from "@/components/CategoryFilterSection";
 import Link from "next/link";
+import { getFirstProductImageUrl } from "@/utils/product";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -120,18 +121,20 @@ export default async function CategoryPage({ params }: PageProps) {
     sizeMap.set(v.productId, currentSizes);
   });
 
-  // Attach sizes to displayProducts
-  displayProducts = displayProducts.map((p) => ({
+  // Attach sizes and imageUrl to displayProducts
+  const finalDisplayProducts = displayProducts.map((p) => ({
     ...p,
     sizes: sizeMap.get(p.id) || [],
+    imageUrl: getFirstProductImageUrl(p.images, p.colors),
   }));
 
-  // Attach sizes to sectionsWithProducts
-  sectionsWithProducts = sectionsWithProducts.map((s) => ({
+  // Attach sizes and imageUrl to sectionsWithProducts
+  const finalSectionsWithProducts = sectionsWithProducts.map((s) => ({
     ...s,
     products: (s.products || []).map((p: any) => ({
       ...p,
       sizes: sizeMap.get(p.id) || [],
+      imageUrl: getFirstProductImageUrl(p.images, p.colors),
     })),
   }));
 
@@ -139,8 +142,8 @@ export default async function CategoryPage({ params }: PageProps) {
     <div className="w-full bg-brand-light min-h-[calc(100vh-64px)] flex flex-col">
       {/* Rendering sections and fallback products via interactive CategoryFilterSection component */}
       <CategoryFilterSection
-        initialSections={sectionsWithProducts}
-        initialDisplayProducts={displayProducts}
+        initialSections={finalSectionsWithProducts}
+        initialDisplayProducts={finalDisplayProducts}
         categoryName={categoryName}
         slug={slug}
         filterTypes={filterTypes}

@@ -3,19 +3,23 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
+import { isAdminEmail } from "@/utils/admin-helper";
 
 export async function GET() {
   try {
-    const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phoneNumber) {
-      return NextResponse.json({ authenticated: false });
+    if (!email || isAdminEmail(email)) {
+      const response = NextResponse.json({ authenticated: false });
+      const cookieStore = await cookies();
+      cookieStore.delete("auth_session");
+      return response;
     }
 
     const userResult = await db.select()
       .from(users)
-      .where(eq(users.phoneNumber, phoneNumber))
+      .where(eq(users.email, email))
       .limit(1);
 
     const user = userResult[0];
@@ -30,7 +34,7 @@ export async function GET() {
     return NextResponse.json({ 
       authenticated: true, 
       user: {
-        phoneNumber: user.phoneNumber,
+        email: user.email,
         fullName: user.fullName,
       } 
     });

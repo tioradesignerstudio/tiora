@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, orderItems, products, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { getVerifiedPhoneFromCookie } from "@/db/auth-helper";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function GET() {
   try {
-    const phoneNumber = await getVerifiedPhoneFromCookie("auth_session");
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phoneNumber) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
     }
 
     // Find user
-    const userRows = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!userRows.length) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }

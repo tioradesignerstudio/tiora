@@ -2,18 +2,17 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { wishlists, products, users, productVariations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { cookies } from "next/headers";
+import { getVerifiedEmailFromCookie } from "@/db/auth-helper";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const phone = cookieStore.get("auth_session")?.value;
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const userResult = await db.select().from(users).where(eq(users.phoneNumber, phone)).limit(1);
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const user = userResult[0];
 
     if (!user) {
@@ -58,14 +57,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const phone = cookieStore.get("auth_session")?.value;
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const userResult = await db.select().from(users).where(eq(users.phoneNumber, phone)).limit(1);
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const user = userResult[0];
 
     if (!user) {
@@ -107,14 +105,13 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const phone = cookieStore.get("auth_session")?.value;
+    const email = await getVerifiedEmailFromCookie("auth_session");
 
-    if (!phone) {
+    if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const userResult = await db.select().from(users).where(eq(users.phoneNumber, phone)).limit(1);
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const user = userResult[0];
 
     if (!user) {
