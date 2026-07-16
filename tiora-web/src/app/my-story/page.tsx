@@ -1,42 +1,168 @@
 "use client";
 
-import React from "react";
-import { Mail, Phone, Camera, Share2, MessageCircle, Sparkles, MapPin, Clock, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { Mail, Phone, Camera, Share2, MessageCircle, Sparkles, MapPin, Clock, ArrowRight, Crown, Sparkle, Scissors, Palette } from "lucide-react";
+import { motion } from "framer-motion";
+
+const packagesData = [
+  {
+    title: "Bridal Couture",
+    imageUrl: "/images/i1.png",
+    fallbackUrl: "/images/bridal_styling_pkg.png"
+  },
+  {
+    title: "Signature Ceremony",
+    imageUrl: "/images/i2.png",
+    fallbackUrl: "/images/half_saree_pkg.png"
+  },
+  {
+    title: "Bespoke Designing",
+    imageUrl: "/images/i3.png",
+    fallbackUrl: "/images/custom_designs_pkg.png"
+  },
+  {
+    title: "Atelier Consultation",
+    imageUrl: "/images/i4.png",
+    fallbackUrl: "/images/tiora_showroom_banner.png"
+  }
+];
+
+interface ImageCardProps {
+  imageUrl: string;
+  fallbackUrl: string;
+  title: string;
+}
+
+function ImageCard({ imageUrl, fallbackUrl, title }: ImageCardProps) {
+  const [imgSrc, setImgSrc] = useState(imageUrl);
+  const [hasError, setHasError] = useState(false);
+
+  return (
+    <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-md select-none pointer-events-none">
+      <img
+        src={imgSrc}
+        alt={title}
+        onError={() => {
+          if (!hasError) {
+            setHasError(true);
+            setImgSrc(fallbackUrl);
+          }
+        }}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+    </div>
+  );
+}
 
 export default function MyStory() {
   return (
-    <main className="min-h-screen bg-brand-light text-brand-dark-dark">
+    <main className="min-h-screen bg-brand-light text-brand-dark-dark selection:bg-[#B18E35]/30">
 
-      {/* Narrative Section */}
-      <section className="max-w-5xl mx-auto px-6 py-16 md:py-24 relative">
-        <div className="absolute inset-0 bg-[#333333]/2 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* Narrative Section - Redesigned to Our Boutique */}
+      <section className="max-w-7xl mx-auto px-6 py-16 md:py-24 relative overflow-hidden">
+        {/* Background Subtle Blurs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#B18E35]/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#333333]/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-        <div className="text-center space-y-8 relative z-10">
-          <div>
-            <span className="text-[#333333]/60 font-black uppercase tracking-[0.4em] text-[10px] mb-3 block">Our Philosophy</span>
-            <h2 className="text-4xl md:text-5xl font-playfair font-bold text-brand-dark-dark leading-tight mb-4">
-              The Vision Behind <span className="text-[#333333]">Tiora</span>
-            </h2>
-            <div className="w-20 h-1 bg-[#333333] mx-auto rounded-full"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center relative z-10">
+          
+          {/* Left Half: 4 Images in Staggered Asymmetric Structure */}
+          <div className="lg:col-span-6 flex justify-center lg:justify-center items-center">
+            <div className="grid grid-cols-2 gap-4 max-w-[320px] sm:max-w-[370px] md:max-w-[420px] w-full">
+              <motion.div 
+                initial={{ opacity: 0, x: -60 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="space-y-4 pt-8"
+              >
+                <ImageCard
+                  imageUrl={packagesData[0].imageUrl}
+                  fallbackUrl={packagesData[0].fallbackUrl}
+                  title={packagesData[0].title}
+                />
+                <ImageCard
+                  imageUrl={packagesData[2].imageUrl}
+                  fallbackUrl={packagesData[2].fallbackUrl}
+                  title={packagesData[2].title}
+                />
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 60 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                className="space-y-4"
+              >
+                <ImageCard
+                  imageUrl={packagesData[1].imageUrl}
+                  fallbackUrl={packagesData[1].fallbackUrl}
+                  title={packagesData[1].title}
+                />
+                <ImageCard
+                  imageUrl={packagesData[3].imageUrl}
+                  fallbackUrl={packagesData[3].fallbackUrl}
+                  title={packagesData[3].title}
+                />
+              </motion.div>
+            </div>
           </div>
 
-          <div className="space-y-6 text-lg text-brand-dark-dark/75 font-medium leading-relaxed max-w-4xl mx-auto">
-            <p>
-              Our journey is defined by a dedication to craftsmanship, heritage, and modern design. Established with a vision to create timeless silhouettes, we blend traditional artistry with contemporary aesthetics to craft garments that inspire confidence and elegance.
+          {/* Right Half: Our Boutique Info and Customization Packages (Static Matter) */}
+          <div className="lg:col-span-6 lg:pl-0 lg:-ml-8 flex flex-col justify-center space-y-6">
+            <div>
+              <span className="text-[#B18E35] font-black uppercase tracking-[0.4em] text-xs mb-3 block">Welcome to Tiora</span>
+              <h2 className="text-4xl md:text-5xl font-playfair font-bold text-brand-dark-dark leading-tight mb-4">
+                Our Boutique
+              </h2>
+              <div className="w-20 h-1 bg-[#B18E35] rounded-full"></div>
+            </div>
+
+            <p className="text-base md:text-lg font-medium text-[#333333]/90 leading-relaxed">
+              Tiora Designer Studio brings you an exquisite selection of custom-tailored silhouettes, bridal designs, and coordinated occasion wear. We believe in creating outfits that perfectly complement your individuality. 
             </p>
-            <p>
-              Every collection is a curation of fine fabrics, intricate details, and tailored precision. We believe that fashion is a form of self-expression, and our creations are designed to celebrate individuality and grace.
-            </p>
-            <p>
-              From the sourcing of premium materials to the final stitch, our commitment to sustainability and quality remains at the heart of everything we do.
-            </p>
+
+            {/* Static Boutique Details Panel */}
+            <div className="border-t border-[#333333]/10 pt-8 space-y-6">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xl md:text-2xl font-playfair font-bold uppercase tracking-widest text-[#111111]">
+                  Customization & Packages
+                </h3>
+              </div>
+
+              <ul className="space-y-4">
+                <li className="flex items-start text-sm md:text-base font-bold text-brand-dark-dark/90 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-[#B18E35] mr-3 mt-2 shrink-0"></span>
+                  <div>
+                    <span className="text-[#B18E35] uppercase tracking-wider block text-xs mb-0.5">Bridal Couture</span>
+                    Bespoke wedding lehengas, designer sarees, and custom bridal wear.
+                  </div>
+                </li>
+                <li className="flex items-start text-sm md:text-base font-bold text-brand-dark-dark/90 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-[#B18E35] mr-3 mt-2 shrink-0"></span>
+                  <div>
+                    <span className="text-[#B18E35] uppercase tracking-wider block text-xs mb-0.5">Signature Ceremony</span>
+                    Coordinating family theme wear, half-sarees, and birthday outfits.
+                  </div>
+                </li>
+                <li className="flex items-start text-sm md:text-base font-bold text-brand-dark-dark/90 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-[#B18E35] mr-3 mt-2 shrink-0"></span>
+                  <div>
+                    <span className="text-[#B18E35] uppercase tracking-wider block text-xs mb-0.5">Bespoke Designing</span>
+                    1-on-1 designer sketches, pattern drafting, and premium fabric selection.
+                  </div>
+                </li>
+                <li className="flex items-start text-sm md:text-base font-bold text-brand-dark-dark/90 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-[#B18E35] mr-3 mt-2 shrink-0"></span>
+                  <div>
+                    <span className="text-[#B18E35] uppercase tracking-wider block text-xs mb-0.5">Atelier Consultation</span>
+                    Designer blouses, precision fittings, and festive wardrobe updates.
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div className="pt-6 border-t border-b border-[#333333]/10 py-6 max-w-3xl mx-auto">
-            <p className="italic text-[#333333] font-playfair text-xl md:text-2xl text-center">
-              "We don't just sell clothes; we weave memories into every thread."
-            </p>
-          </div>
         </div>
       </section>
       <section id="contact" className="bg-white py-24 text-brand-dark overflow-hidden relative border-t border-black/5">
