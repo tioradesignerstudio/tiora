@@ -101,7 +101,7 @@ export default function Footer() {
         <div className="md:col-span-3">
           <h4 className="text-[10px] font-semibold uppercase tracking-[0.25em] text-brand-accent mb-4">Customer Care</h4>
           <ul className="space-y-2.5 text-xs text-brand-dark/80 font-medium">
-            <li><Link href="/my-story#contact" className="hover:text-brand-accent transition">Contact Us</Link></li>
+            <li><Link href="/our-store#contact" className="hover:text-brand-accent transition">Contact Us</Link></li>
             <li><Link href="/shipping-delivery" className="hover:text-brand-accent transition">Shipping & Delivery</Link></li>
             <li><Link href="/cancellation-returns" className="hover:text-brand-accent transition">Cancellation & Returns</Link></li>
             <li><Link href="/privacy-policy" className="hover:text-brand-accent transition">Privacy Policy & Terms</Link></li>

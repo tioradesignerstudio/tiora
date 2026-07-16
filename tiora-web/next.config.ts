@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  devIndicators: {
+    appIsrStatus: false,
+  },
   allowedDevOrigins: ['localhost', '127.0.0.1']
 };
 

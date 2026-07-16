@@ -54,7 +54,7 @@ function ImageCard({ imageUrl, fallbackUrl, title }: ImageCardProps) {
   );
 }
 
-export default function MyStory() {
+export default function OurStore() {
   return (
     <main className="min-h-screen bg-brand-light text-brand-dark-dark selection:bg-[#B18E35]/30">
 

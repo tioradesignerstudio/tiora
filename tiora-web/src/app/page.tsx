@@ -388,7 +388,7 @@ Here are my details:
 
       {/* Dynamic Promo Banners Carousel */}
       {banners.length > 0 && (
-        <div className="w-full relative overflow-hidden border-b border-black/5 group aspect-[4/3] md:aspect-[21/9] mt-0">
+        <div className="w-full relative overflow-hidden border-b border-black/5 group aspect-[768/1376] md:aspect-[21/9] mt-0">
           <div className="w-full h-full relative">
             <AnimatePresence mode="wait">
               {banners.map((banner, idx) => {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, User, Menu, X, LogOut, AlertCircle, BookOpen, Heart, Trash2, Sparkles } from "lucide-react";
+import { Search, User, Menu, X, LogOut, AlertCircle, Store, Heart, Trash2, Sparkles } from "lucide-react";
 import ShoppingBagIcon from "@/components/icons/ShoppingBagIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileDropdown from "./ProfileDropdown";
@@ -195,9 +195,9 @@ export default function Navbar() {
                 </form>
               </div>
 
-              <Link href="/my-story" aria-label="My Story" className="hover:text-brand-accent transition-colors p-2 flex items-center gap-1.5 group">
-                <BookOpen className="h-5 w-5" />
-                <span className="text-[10px] font-medium uppercase tracking-widest hidden lg:block">My Story</span>
+              <Link href="/our-store" aria-label="Our Store" className="hover:text-brand-accent transition-colors p-2 flex items-center gap-1.5 group">
+                <Store className="h-5 w-5" />
+                <span className="text-[10px] font-medium uppercase tracking-widest hidden lg:block">Our Store</span>
               </Link>
 
               <Link href="/packages" aria-label="Our Packages" className="hover:text-brand-accent transition-colors p-2 flex items-center gap-1.5 group">
@@ -256,8 +256,8 @@ export default function Navbar() {
               <button onClick={() => setIsSearchOpen(true)} aria-label="Search" className="text-brand-dark p-1 sm:p-2">
                 <Search className="h-5 w-5" />
               </button>
-              <Link href="/my-story" aria-label="My Story" className="text-brand-dark p-1 sm:p-2">
-                <BookOpen className="h-5 w-5" />
+              <Link href="/our-store" aria-label="Our Store" className="text-brand-dark p-1 sm:p-2">
+                <Store className="h-5 w-5" />
               </Link>
               <Link href="/packages" aria-label="Our Packages" className="text-brand-dark p-1 sm:p-2">
                 <Sparkles className="h-5 w-5" />
@@ -300,11 +300,11 @@ export default function Navbar() {
           <div className="md:hidden bg-white border-t border-black/5 animate-in slide-in-from-top duration-300">
             <div className="px-6 pt-8 pb-12 space-y-4">
               <Link 
-                href="/my-story" 
+                href="/our-store" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111] hover:text-[#B18E35] py-2"
               >
-                My Story
+                Our Store
               </Link>
               <Link 
                 href="/packages" 
