@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import ProductGrid from "@/components/ProductGrid";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,46 @@ export default function Home() {
   const [offers, setOffers] = useState<any[]>([]);
   const [homepageCatCards, setHomepageCatCards] = useState<any[]>([]);
   const [navCategories, setNavCategories] = useState<any[]>([]);
+
+  // Drag to scroll carousel refs and handlers
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDown(true);
+    setIsDragging(false);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    if (Math.abs(x - startX) > 5) {
+      setIsDragging(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+    }
+  };
 
   // Appointment booking form state variables
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -321,45 +361,42 @@ Here are my details:
         </div>
       )}
 
-      {/* Navbar Categories Carousel */}
+      {/* Navbar Categories Carousel (Draggable & Swipeable) */}
       {navCategories.length > 0 && (
         <div className="w-full py-10 overflow-hidden">
-          <div className="w-full relative">
-            <div className="flex animate-marquee hover:[animation-play-state:paused] pb-4 pt-2">
-              {/* First Track */}
-              <div className="flex gap-4 md:gap-6 px-3 md:px-4 flex-shrink-0">
-                {repeatedNavCategories.map((cat, idx) => (
-                  <Link key={`nav1-${idx}`} href={cat.href || "#"} className="flex flex-col items-center gap-4 min-w-[160px] md:min-w-[200px] group cursor-pointer">
-                    <div className="w-40 h-40 md:w-48 md:h-48 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-all bg-white flex-shrink-0 relative border border-black/5 group-hover:border-[#385042]">
-                      {cat.imageUrl ? (
-                        <img src={cat.imageUrl} alt={cat.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={e => (e.currentTarget.src = "/images/placeholder.png")} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                          <span className="text-xs uppercase font-medium text-center px-2">{cat.label}</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[#385042] font-bold text-sm md:text-base text-center tracking-wide">{cat.label}</span>
-                  </Link>
-                ))}
-              </div>
-              {/* Second Track */}
-              <div className="flex gap-4 md:gap-6 px-3 md:px-4 flex-shrink-0" aria-hidden="true">
-                {repeatedNavCategories.map((cat, idx) => (
-                  <Link key={`nav2-${idx}`} href={cat.href || "#"} className="flex flex-col items-center gap-4 min-w-[160px] md:min-w-[200px] group cursor-pointer">
-                    <div className="w-40 h-40 md:w-48 md:h-48 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-all bg-white flex-shrink-0 relative border border-black/5 group-hover:border-[#385042]">
-                      {cat.imageUrl ? (
-                        <img src={cat.imageUrl} alt={cat.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={e => (e.currentTarget.src = "/images/placeholder.png")} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                          <span className="text-xs uppercase font-medium text-center px-2">{cat.label}</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[#385042] font-bold text-sm md:text-base text-center tracking-wide">{cat.label}</span>
-                  </Link>
-                ))}
-              </div>
+          <div className="w-full relative px-6 md:px-12">
+            <div 
+              ref={scrollRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-4 pt-2 select-none cursor-grab active:cursor-grabbing scroll-smooth"
+            >
+              {navCategories.map((cat, idx) => (
+                <Link 
+                  key={`${cat.id}-${idx}`} 
+                  href={cat.href || "#"} 
+                  onClick={handleLinkClick}
+                  className="flex flex-col items-center gap-4 min-w-[160px] md:min-w-[200px] group cursor-pointer shrink-0"
+                >
+                  <div className="w-40 h-40 md:w-48 md:h-48 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-all bg-white flex-shrink-0 relative border border-black/5 group-hover:border-[#385042]">
+                    {cat.imageUrl ? (
+                      <img 
+                        src={cat.imageUrl} 
+                        alt={cat.label} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none" 
+                        onError={e => (e.currentTarget.src = "/images/placeholder.png")} 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                        <span className="text-xs uppercase font-medium text-center px-2">{cat.label}</span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[#385042] font-bold text-sm md:text-base text-center tracking-wide">{cat.label}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
