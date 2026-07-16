@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import ProductGrid from "@/components/ProductGrid";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Calendar, Clock, User, Phone, MessageSquare, ChevronDown } from "lucide-react";
+import { X, Calendar, Clock, User, Phone, MessageSquare, ChevronDown, Loader2 } from "lucide-react";
 
 function parseOfferText(text: string) {
   if (text.includes("|")) {
@@ -25,6 +25,7 @@ export default function Home() {
   const [offers, setOffers] = useState<any[]>([]);
   const [homepageCatCards, setHomepageCatCards] = useState<any[]>([]);
   const [navCategories, setNavCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Categories carousel drag-scroll & auto-scroll state variables
   const categoriesContainerRef = useRef<HTMLDivElement>(null);
@@ -43,9 +44,20 @@ export default function Home() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [dateError, setDateError] = useState("");
 
-  // Force scroll to top on mount
+  // Scroll to top on navigation, but preserve scroll position on page refresh
   useEffect(() => {
     if (typeof window !== "undefined") {
+      try {
+        const navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          const navType = (navEntries[0] as PerformanceNavigationTiming).type;
+          if (navType === 'reload') {
+            return; // Do not scroll to top on page refresh
+          }
+        }
+      } catch (e) {
+        console.warn("Performance navigation API not supported", e);
+      }
       window.scrollTo(0, 0);
     }
   }, []);
@@ -141,6 +153,8 @@ Here are my details:
         }
       } catch (err) {
         console.warn("Failed to fetch settings/offers/categories", err);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchData();
@@ -276,6 +290,28 @@ Here are my details:
     }, 5000);
     return () => clearInterval(interval);
   }, [banners.length]);
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-[#faf8f0] text-[#111111] flex flex-col items-center justify-center gap-4 selection:bg-[#B18E35]/30">
+        <div className="space-y-4 text-center">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-6xl font-playfair font-semibold uppercase tracking-[0.25em] text-[#111111] leading-none">
+              Tiora
+            </h1>
+            <p className="text-[10px] md:text-xs uppercase tracking-[0.45em] text-[#B18E35] font-black">
+              D e s i g n e r &nbsp; S t u d i o
+            </p>
+          </div>
+          <div className="w-20 h-[1.5px] bg-[#B18E35] mx-auto my-4"></div>
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-[#B18E35]" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#B18E35]">Loading Studio...</span>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-light text-brand font-sans selection:bg-brand-accent/30">
