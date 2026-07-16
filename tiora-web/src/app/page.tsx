@@ -196,6 +196,7 @@ Here are my details:
   const handleMouseLeave = () => {
     setIsMouseDown(false);
     setIsDragging(false);
+    setIsHovered(false);
   };
 
   // Initialize scroll position to the middle third for seamless infinite drag left/right
@@ -424,6 +425,8 @@ Here are my details:
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
               onMouseEnter={() => setIsHovered(true)}
+              onTouchStart={() => setIsHovered(true)}
+              onTouchEnd={() => setIsHovered(false)}
               className="flex overflow-x-auto select-none cursor-grab active:cursor-grabbing no-scrollbar pb-4 pt-2 gap-4 md:gap-6 px-3 md:px-4"
             >
               {tripledCategories.map((cat, idx) => (
