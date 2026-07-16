@@ -388,22 +388,36 @@ Here are my details:
 
       {/* Dynamic Promo Banners Carousel */}
       {banners.length > 0 && (
-        <div className="w-full relative overflow-hidden border-b border-black/5 group aspect-[21/9] mt-0">
+        <div className="w-full relative overflow-hidden border-b border-black/5 group aspect-[4/3] md:aspect-[21/9] mt-0">
           <div className="w-full h-full relative">
             <AnimatePresence mode="wait">
               {banners.map((banner, idx) => {
                 const isLink = !!banner.link;
                 const ImageElement = (
-                  <motion.img 
-                    key={banner.url}
-                    src={banner.url} 
-                    alt={`Current Offer Slide ${idx + 1}`} 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.01]" 
-                  />
+                  <>
+                    {/* Mobile Banner */}
+                    <motion.img 
+                      key={`${banner.url}-mobile`}
+                      src="/images/tiora_banner_mobile.png" 
+                      alt={`Current Offer Mobile Slide ${idx + 1}`} 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="block md:hidden w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.01]" 
+                    />
+                    {/* Desktop Banner */}
+                    <motion.img 
+                      key={`${banner.url}-desktop`}
+                      src={banner.url} 
+                      alt={`Current Offer Slide ${idx + 1}`} 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="hidden md:block w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.01]" 
+                    />
+                  </>
                 );
 
                 return idx === currentSlide && (
