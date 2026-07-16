@@ -43,6 +43,13 @@ export default function Home() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [dateError, setDateError] = useState("");
 
+  // Force scroll to top on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   const todayStr = useMemo(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
