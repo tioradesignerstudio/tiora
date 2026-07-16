@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { SlidersHorizontal, ChevronDown, Check, X, LayoutGrid } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import ProductCarousel from "@/components/ProductCarousel";
 import ProductCard from "@/components/ProductCard";
 import { getFirstProductImageUrl, getProductImageUrls } from "@/utils/product";
@@ -84,6 +85,27 @@ export default function CategoryFilterSection({
 
     return Array.from(map.values());
   }, [initialSections, initialDisplayProducts]);
+
+  // If no products have been added to this category/section yet
+  if (allProducts.length === 0) {
+    return (
+      <div className="min-h-[70vh] flex-grow flex flex-col items-center justify-center px-4 text-center">
+        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-brand/5">
+          <SlidersHorizontal className="text-[#333333]" size={24} />
+        </div>
+        <h1 className="text-3xl md:text-4xl font-playfair font-bold text-brand mb-4">No products added yet</h1>
+        <p className="text-brand/60 max-w-sm mx-auto text-sm mb-8 leading-relaxed">
+          We are currently preparing fresh designer items for this category. Please check back later!
+        </p>
+        <Link 
+          href="/" 
+          className="bg-[#0E2C2C] text-[#C5A059] hover:bg-[#0A2222] px-8 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-md inline-block"
+        >
+          Go to Home
+        </Link>
+      </div>
+    );
+  }
 
   // Parse admin configured filter types
   const adminFilterTypes = useMemo(() => {

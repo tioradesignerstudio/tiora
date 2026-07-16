@@ -218,6 +218,20 @@ export default function PackagesPage() {
     );
   }
 
+  if (packages.length === 0) {
+    return (
+      <main className="min-h-[70vh] bg-[#faf8f0] text-[#111111] flex flex-col items-center justify-center gap-4 px-4 text-center selection:bg-[#B18E35]/30">
+        <h2 className="text-2xl font-playfair font-bold text-[#111111] mb-2">No packages added yet</h2>
+        <p className="text-neutral-500 max-w-sm mx-auto text-sm mb-6 leading-relaxed">
+          We are currently setting up customization packages for this section. Please check back soon!
+        </p>
+        <a href="/" className="bg-[#0E2C2C] text-[#C5A059] hover:bg-[#0A2222] px-8 py-3.5 text-xs font-black uppercase tracking-widest transition-all shadow-md">
+          Go to Home
+        </a>
+      </main>
+    );
+  }
+
   // Group packages by categoryTitle, keeping insertion order (based on db query order)
   const categoriesList: EventCategory[] = [];
   packages.forEach((pkg) => {
