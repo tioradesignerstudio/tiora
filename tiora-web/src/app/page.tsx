@@ -26,45 +26,13 @@ export default function Home() {
   const [homepageCatCards, setHomepageCatCards] = useState<any[]>([]);
   const [navCategories, setNavCategories] = useState<any[]>([]);
 
-  // Drag to scroll carousel refs and handlers
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isDown, setIsDown] = useState(false);
+  // Categories carousel drag-scroll & auto-scroll state variables
+  const categoriesContainerRef = useRef<HTMLDivElement>(null);
+  const [isMouseDown, setIsMouseDown] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [scrollLeftState, setScrollLeftState] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDown(true);
-    setIsDragging(false);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDown(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDown(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDown || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // Scroll speed multiplier
-    if (Math.abs(x - startX) > 5) {
-      setIsDragging(true);
-    }
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleLinkClick = (e: React.MouseEvent) => {
-    if (isDragging) {
-      e.preventDefault();
-    }
-  };
 
   // Appointment booking form state variables
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -180,6 +148,89 @@ Here are my details:
     }
     return list;
   }, [navCategories]);
+
+  const tripledCategories = useMemo(() => {
+    if (repeatedNavCategories.length === 0) return [];
+    return [...repeatedNavCategories, ...repeatedNavCategories, ...repeatedNavCategories];
+  }, [repeatedNavCategories]);
+
+  // Infinite scroll wrap-around logic
+  const handleScroll = () => {
+    const container = categoriesContainerRef.current;
+    if (!container) return;
+    const W = container.scrollWidth / 3;
+    
+    if (container.scrollLeft >= W * 2) {
+      container.scrollLeft -= W;
+    } else if (container.scrollLeft <= W) {
+      container.scrollLeft += W;
+    }
+  };
+
+  // Mouse drag-scroll handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!categoriesContainerRef.current) return;
+    setIsMouseDown(true);
+    setIsDragging(false);
+    setStartX(e.pageX - categoriesContainerRef.current.offsetLeft);
+    setScrollLeftState(categoriesContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown || !categoriesContainerRef.current) return;
+    const x = e.pageX - categoriesContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // scroll speed multiplier
+    if (Math.abs(x - startX) > 5) {
+      setIsDragging(true);
+    }
+    categoriesContainerRef.current.scrollLeft = scrollLeftState - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsMouseDown(false);
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 50);
+  };
+
+  const handleMouseLeave = () => {
+    setIsMouseDown(false);
+    setIsDragging(false);
+  };
+
+  // Initialize scroll position to the middle third for seamless infinite drag left/right
+  useEffect(() => {
+    const container = categoriesContainerRef.current;
+    if (!container) return;
+    
+    const timer = setTimeout(() => {
+      const W = container.scrollWidth / 3;
+      container.scrollLeft = W;
+    }, 150);
+    
+    return () => clearTimeout(timer);
+  }, [repeatedNavCategories]);
+
+  // Auto-scroll loop
+  useEffect(() => {
+    const container = categoriesContainerRef.current;
+    if (!container) return;
+
+    let intervalId: NodeJS.Timeout;
+
+    const startAutoScroll = () => {
+      intervalId = setInterval(() => {
+        if (isMouseDown || isHovered || isDragging) return;
+        container.scrollLeft += 1;
+      }, 30);
+    };
+
+    startAutoScroll();
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isMouseDown, isHovered, isDragging]);
 
   // Duplicate offers to ensure marquee fills screen and loops seamlessly
   const repeatedOffers = useMemo(() => {
@@ -361,23 +412,29 @@ Here are my details:
         </div>
       )}
 
-      {/* Navbar Categories Carousel (Draggable & Swipeable) */}
-      {navCategories.length > 0 && (
+      {/* Navbar Categories Carousel (Swipable, Drag-Scrollable, Auto-scrolling) */}
+      {tripledCategories.length > 0 && (
         <div className="w-full py-10 overflow-hidden">
-          <div className="w-full relative px-6 md:px-12">
+          <div className="w-full relative">
             <div 
-              ref={scrollRef}
+              ref={categoriesContainerRef}
+              onScroll={handleScroll}
               onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
               onMouseMove={handleMouseMove}
-              className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-4 pt-2 select-none cursor-grab active:cursor-grabbing scroll-smooth"
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onMouseEnter={() => setIsHovered(true)}
+              className="flex overflow-x-auto select-none cursor-grab active:cursor-grabbing no-scrollbar pb-4 pt-2 gap-4 md:gap-6 px-3 md:px-4"
             >
-              {navCategories.map((cat, idx) => (
+              {tripledCategories.map((cat, idx) => (
                 <Link 
-                  key={`${cat.id}-${idx}`} 
+                  key={`nav-${idx}`} 
                   href={cat.href || "#"} 
-                  onClick={handleLinkClick}
+                  onClick={(e) => {
+                    if (isDragging) {
+                      e.preventDefault();
+                    }
+                  }}
                   className="flex flex-col items-center gap-4 min-w-[160px] md:min-w-[200px] group cursor-pointer shrink-0"
                 >
                   <div className="w-40 h-40 md:w-48 md:h-48 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-all bg-white flex-shrink-0 relative border border-black/5 group-hover:border-[#385042]">
@@ -385,16 +442,17 @@ Here are my details:
                       <img 
                         src={cat.imageUrl} 
                         alt={cat.label} 
+                        draggable="false"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none" 
                         onError={e => (e.currentTarget.src = "/images/placeholder.png")} 
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400 pointer-events-none">
                         <span className="text-xs uppercase font-medium text-center px-2">{cat.label}</span>
                       </div>
                     )}
                   </div>
-                  <span className="text-[#385042] font-bold text-sm md:text-base text-center tracking-wide">{cat.label}</span>
+                  <span className="text-[#385042] font-bold text-sm md:text-base text-center tracking-wide pointer-events-none select-none">{cat.label}</span>
                 </Link>
               ))}
             </div>
