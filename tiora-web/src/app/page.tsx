@@ -44,45 +44,23 @@ export default function Home() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [dateError, setDateError] = useState("");
 
-  // Save scroll position on scroll to preserve it across page refreshes
+  // Scroll to top on navigation, but preserve scroll position on page refresh
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleScrollSave = () => {
-      sessionStorage.setItem("homepage_scroll_pos", window.scrollY.toString());
-    };
-    window.addEventListener("scroll", handleScrollSave);
-    return () => window.removeEventListener("scroll", handleScrollSave);
-  }, []);
-
-  // Handle scroll position once loading completes
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    
-    if (!isLoading) {
+    if (typeof window !== "undefined") {
       try {
         const navEntries = performance.getEntriesByType('navigation');
         if (navEntries.length > 0) {
           const navType = (navEntries[0] as PerformanceNavigationTiming).type;
           if (navType === 'reload') {
-            const savedScroll = sessionStorage.getItem("homepage_scroll_pos");
-            if (savedScroll) {
-              const y = parseInt(savedScroll, 10);
-              // Wait a tiny bit for layout to render fully
-              const timer = setTimeout(() => {
-                window.scrollTo(0, y);
-              }, 100);
-              return () => clearTimeout(timer);
-            }
+            return; // Do not scroll to top on page refresh
           }
         }
       } catch (e) {
         console.warn("Performance navigation API not supported", e);
       }
-      
-      // On normal navigation, force scroll to top
       window.scrollTo(0, 0);
     }
-  }, [isLoading]);
+  }, []);
 
   const todayStr = useMemo(() => {
     const today = new Date();
@@ -248,8 +226,17 @@ Here are my details:
     if (!container) return;
     
     const timer = setTimeout(() => {
+      if (!container) return;
       const W = container.scrollWidth / 3;
+      
+      // Save current window scroll positions to prevent browser jumps
+      const currentScrollX = window.scrollX;
+      const currentScrollY = window.scrollY;
+      
       container.scrollLeft = W;
+      
+      // Restore window scroll positions
+      window.scrollTo(currentScrollX, currentScrollY);
     }, 150);
     
     return () => clearTimeout(timer);
