@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, User, Menu, X, LogOut, AlertCircle, Store, Heart, Trash2, Sparkles } from "lucide-react";
+import { Search, User, Menu, X, LogOut, AlertCircle, Store, Heart, Trash2, Sparkles, Settings, MapPin, Package } from "lucide-react";
 import ShoppingBagIcon from "@/components/icons/ShoppingBagIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileDropdown from "./ProfileDropdown";
@@ -299,47 +299,60 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-black/5 animate-in slide-in-from-top duration-300">
             <div className="px-6 pt-8 pb-12 space-y-4">
-              <Link 
-                href="/our-store" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111] hover:text-[#B18E35] py-2"
-              >
-                Our Store
-              </Link>
-              <Link 
-                href="/packages" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111] hover:text-[#B18E35] py-2"
-              >
-                Our Packages
-              </Link>
-              
-              <div className="pt-8 border-t border-black/5">
+
                 {user ? (
                   <div className="space-y-4">
-                    <Link
-                      href="/profile"
-                      className="flex items-center space-x-4 px-4 py-4 rounded-none bg-neutral-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
+                    {/* User Header */}
+                    <div className="flex items-center space-x-4 px-4 py-4 bg-brand/5 border border-brand/5">
                       <div className="w-10 h-10 rounded-full bg-white border border-black/10 flex items-center justify-center text-[#333333] font-bold">
                         {user.fullName?.charAt(0) || "U"}
                       </div>
-                      <div>
-                        <div className="text-sm font-bold uppercase tracking-widest text-brand-dark">{user.fullName || "My Profile"}</div>
-                        <div className="text-[10px] text-brand-dark/40 uppercase tracking-widest">View Details</div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold uppercase tracking-widest text-brand-dark truncate">{user.fullName || "User"}</div>
+                        <div className="text-[9px] text-brand-dark/40 tracking-wider font-semibold truncate mt-0.5">{user.email}</div>
                       </div>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setIsLogoutModalOpen(true);
-                      }}
-                      className="w-full flex items-center justify-center space-x-3 px-4 py-4 rounded-none border border-red-200 text-red-500 font-bold uppercase tracking-widest text-xs cursor-pointer"
-                    >
-                      <LogOut size={16} />
-                      <span>Logout</span>
-                    </button>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="space-y-1">
+                      <Link 
+                        href="/account/profile" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-none text-brand-dark hover:text-brand-accent transition-colors"
+                      >
+                        <Settings size={16} className="text-[#333333]" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Edit Profile</span>
+                      </Link>
+
+                      <Link 
+                        href="/account/address" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-none text-brand-dark hover:text-brand-accent transition-colors"
+                      >
+                        <MapPin size={16} className="text-[#333333]" />
+                        <span className="text-xs font-bold uppercase tracking-wider">My Address</span>
+                      </Link>
+
+                      <Link 
+                        href="/profile/orders" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-none text-brand-dark hover:text-brand-accent transition-colors"
+                      >
+                        <Package size={16} className="text-[#333333]" />
+                        <span className="text-xs font-bold uppercase tracking-wider">My Orders</span>
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsLogoutModalOpen(true);
+                        }}
+                        className="w-full flex items-center space-x-3 px-4 py-3 rounded-none text-red-500 hover:text-red-600 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOut size={16} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Log Out</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
@@ -352,7 +365,7 @@ export default function Navbar() {
                     Login / Sign Up
                   </button>
                 )}
-              </div>
+
             </div>
           </div>
         )}

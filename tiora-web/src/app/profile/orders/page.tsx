@@ -33,19 +33,13 @@ interface Order {
 const MILESTONES = [
   "confirmed",
   "shipped",
-  "on the way",
-  "out for delivery",
   "delivered"
 ];
 
 function getMilestoneProgress(status: string): { width: string; activeIndex: number } {
   const normalized = status?.toLowerCase().trim();
   
-  if (normalized === "cancelled") {
-    return { width: "0%", activeIndex: -1 };
-  }
-  
-  if (normalized === "pending" || normalized === "processing") {
+  if (normalized === "cancelled" || normalized === "pending" || normalized === "processing") {
     return { width: "0%", activeIndex: -1 };
   }
   
@@ -54,19 +48,11 @@ function getMilestoneProgress(status: string): { width: string; activeIndex: num
   }
   
   if (normalized === "shipped") {
-    return { width: "25%", activeIndex: 1 };
-  }
-  
-  if (normalized === "on the way") {
-    return { width: "50%", activeIndex: 2 };
-  }
-  
-  if (normalized === "out for delivery") {
-    return { width: "75%", activeIndex: 3 };
+    return { width: "50%", activeIndex: 1 };
   }
   
   if (normalized === "delivered") {
-    return { width: "100%", activeIndex: 4 };
+    return { width: "100%", activeIndex: 2 };
   }
   
   return { width: "0%", activeIndex: -1 };
@@ -427,7 +413,7 @@ function OrdersContent() {
                   </div>
 
                   {/* Manage Order (Cancel) */}
-                  {["pending", "processing"].includes(order.status) && (
+                  {["pending", "confirmed"].includes(order.status) && (
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-widest mb-3 text-brand/40">Manage Order</p>
                       <div className="bg-brand/5 p-2 rounded-2xl border border-brand/5">

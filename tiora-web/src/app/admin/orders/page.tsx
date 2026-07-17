@@ -43,10 +43,7 @@ export default function AdminOrders() {
   const ORDER_STATUSES = [
     "pending",
     "confirmed",
-    "processing",
     "shipped",
-    "on the way",
-    "out for delivery",
     "delivered",
     "cancelled"
   ];
@@ -90,7 +87,7 @@ export default function AdminOrders() {
   const statusCounts = {
     pending: orders.filter(o => o.status?.toLowerCase() === "pending").length,
     confirmed: orders.filter(o => o.status?.toLowerCase() === "confirmed").length,
-    processing: orders.filter(o => ["processing", "shipped", "on the way", "out for delivery"].includes(o.status?.toLowerCase())).length,
+    shipped: orders.filter(o => o.status?.toLowerCase() === "shipped").length,
     completed: orders.filter(o => o.status?.toLowerCase() === "delivered").length,
     cancelled: orders.filter(o => o.status?.toLowerCase() === "cancelled").length,
   };
@@ -110,8 +107,8 @@ export default function AdminOrders() {
       const orderStatus = (order.status || "").toLowerCase();
       if (statusFilter === "pending" && orderStatus !== "pending") return false;
       if (statusFilter === "confirmed" && orderStatus !== "confirmed") return false;
-      if (statusFilter === "processing" && !["processing", "shipped", "on the way", "out for delivery"].includes(orderStatus)) return false;
-      if (statusFilter === "completed" && orderStatus !== "delivered" && orderStatus !== "completed") return false;
+      if (statusFilter === "shipped" && orderStatus !== "shipped") return false;
+      if (statusFilter === "completed" && orderStatus !== "delivered") return false;
       if (statusFilter === "cancelled" && orderStatus !== "cancelled") return false;
     }
 
@@ -135,10 +132,7 @@ export default function AdminOrders() {
     switch (status) {
       case "pending": return "bg-amber-50 text-amber-600 border-amber-100";
       case "confirmed": return "bg-blue-50 text-blue-600 border-blue-100";
-      case "processing": return "bg-indigo-50 text-indigo-600 border-indigo-100";
       case "shipped": return "bg-indigo-50 text-indigo-600 border-indigo-100";
-      case "on the way": return "bg-cyan-50 text-cyan-600 border-cyan-100";
-      case "out for delivery": return "bg-purple-50 text-purple-600 border-purple-100";
       case "delivered": return "bg-green-50 text-green-600 border-green-100";
       case "cancelled": return "bg-red-50 text-red-600 border-red-100";
       default: return "bg-amber-50 text-amber-600 border-amber-100";
@@ -178,7 +172,7 @@ export default function AdminOrders() {
         {[
           { label: "Pending", count: statusCounts.pending, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
           { label: "Confirmed", count: statusCounts.confirmed, icon: CheckCircle2, color: "text-blue-500", bg: "bg-blue-50" },
-          { label: "Processing", count: statusCounts.processing, icon: Truck, color: "text-indigo-500", bg: "bg-indigo-50" },
+          { label: "Shipped", count: statusCounts.shipped, icon: Truck, color: "text-indigo-500", bg: "bg-indigo-50" },
           { label: "Completed", count: statusCounts.completed, icon: ShoppingBag, color: "text-green-500", bg: "bg-green-50" },
           { label: "Cancelled", count: statusCounts.cancelled, icon: ShoppingBag, color: "text-red-500", bg: "bg-red-50" },
         ].map((s) => (
@@ -215,7 +209,7 @@ export default function AdminOrders() {
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
-                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
